@@ -443,8 +443,8 @@ additional types	some additional representation types are given:
 		internal IfcShapeRepresentation(IfcShapeRepresentation p) : base(p) { }
 		public IfcShapeRepresentation(IfcGeometricRepresentationItem representation) : base(representation, "Body", "") { setIdentifiers(representation); }
 		public IfcShapeRepresentation(List<IfcRepresentationItem> items) : base(items, "Body", "") { setIdentifiers(items[0]); }
-		internal IfcShapeRepresentation(IfcAdvancedBrep ab) : base(ab, "Body", "AdvancedBrep") { }
-		internal IfcShapeRepresentation(IfcBooleanResult br)
+		public IfcShapeRepresentation(IfcAdvancedBrep ab) : base(ab, "Body", "AdvancedBrep") { }
+		public IfcShapeRepresentation(IfcBooleanResult br)
 			: base(br, "Body", "CSG")
 		{
 			IfcBooleanClippingResult bcr = br as IfcBooleanClippingResult;
@@ -452,16 +452,16 @@ additional types	some additional representation types are given:
 				mRepresentationType = "Clipping";
 		}
 
-		internal IfcShapeRepresentation(IfcCsgPrimitive3D cg) : base(cg, "Body", "CSG") { }
-		internal IfcShapeRepresentation(IfcCsgSolid cg) : base(cg, "Body", "CSG") { }
+		public IfcShapeRepresentation(IfcCsgPrimitive3D cg) : base(cg, "Body", "CSG") { }
+		public IfcShapeRepresentation(IfcCsgSolid cg) : base(cg, "Body", "CSG") { }
 		//should remove above as in 3d?? hierarchy test
-		internal IfcShapeRepresentation(IfcFacetedBrep fb) : base(fb, "Body", "Brep") { }
-		internal IfcShapeRepresentation(IfcFaceBasedSurfaceModel sm) : base(sm, "Body", "SurfaceModel") { }
-		internal IfcShapeRepresentation(IfcGeometricSet gs) : base(gs, "Body", "GeometricSet") { }
-		internal IfcShapeRepresentation(IfcMappedItem mi) : base(mi, "Body", "MappedRepresentation") { }
-		internal IfcShapeRepresentation(IfcPoint p) : base(p, "", "Point") { }
+		public IfcShapeRepresentation(IfcFacetedBrep fb) : base(fb, "Body", "Brep") { }
+		public IfcShapeRepresentation(IfcFaceBasedSurfaceModel sm) : base(sm, "Body", "SurfaceModel") { }
+		public IfcShapeRepresentation(IfcGeometricSet gs) : base(gs, "Body", "GeometricSet") { }
+		public IfcShapeRepresentation(IfcMappedItem mi) : base(mi, "Body", "MappedRepresentation") { }
+		public IfcShapeRepresentation(IfcPoint p) : base(p, "", "Point") { }
 		//internal IfcShapeRepresentation(IfcRepresentationMap rm) : base(new IfcMappedItem(rm), "Model", "MappedRepresentation") { }
-		internal IfcShapeRepresentation(IfcSectionedSpine ss) : base(ss, "Body", "SectionedSpine")
+		public IfcShapeRepresentation(IfcSectionedSpine ss) : base(ss, "Body", "SectionedSpine")
 		{
 			if (ss.mCrossSections.Count > 0)
 			{
@@ -470,11 +470,11 @@ additional types	some additional representation types are given:
 					mRepresentationIdentifier = "Surface3D";
 			}
 		}
-		internal IfcShapeRepresentation(IfcShellBasedSurfaceModel sm) : base(sm, "Body", "SurfaceModel") { }
-		internal IfcShapeRepresentation(IfcSurface s) : base(s, "Surface", "Surface3D") { }
-		internal IfcShapeRepresentation(IfcSweptAreaSolid sm) : base(sm, "Body", "SweptSolid") { }
-		internal IfcShapeRepresentation(IfcSweptDiskSolid sm) : base(sm, "Body", "AdvancedSweptSolid") { }
-		internal IfcShapeRepresentation(IfcSolidModel sm) : base(sm, "Body", "SweptSolid")
+		public IfcShapeRepresentation(IfcShellBasedSurfaceModel sm) : base(sm, "Body", "SurfaceModel") { }
+		public IfcShapeRepresentation(IfcSurface s) : base(s, "Surface", "Surface3D") { }
+		public IfcShapeRepresentation(IfcSweptAreaSolid sm) : base(sm, "Body", "SweptSolid") { }
+		public IfcShapeRepresentation(IfcSweptDiskSolid sm) : base(sm, "Body", "AdvancedSweptSolid") { }
+		public IfcShapeRepresentation(IfcSolidModel sm) : base(sm, "Body", "SweptSolid")
 		{
 			//ABSTRACT SUPERTYPE OF (ONEOF(IfcCsgSolid ,IfcManifoldSolidBrep,IfcSweptAreaSolid,IfcSweptDiskSolid))
 			IfcCsgSolid cs = sm as IfcCsgSolid;
@@ -494,8 +494,8 @@ additional types	some additional representation types are given:
 			}
 
 		}
-		internal IfcShapeRepresentation(IfcTessellatedItem ti) : base(ti, "Body", "Tessellation") { } //Tessellation
-		internal IfcShapeRepresentation(List<IfcMappedItem> reps) : base(reps.ConvertAll(x => (IfcRepresentationItem)x), "Body", "MappedRepresentation") { }
+		public IfcShapeRepresentation(IfcTessellatedItem ti) : base(ti, "Body", "Tessellation") { } //Tessellation
+		public IfcShapeRepresentation(List<IfcMappedItem> reps) : base(reps.ConvertAll(x => (IfcRepresentationItem)x), "Body", "MappedRepresentation") { }
 	
 		internal new static IfcShapeRepresentation Parse(string strDef)
 		{

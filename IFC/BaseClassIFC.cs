@@ -44,21 +44,7 @@ namespace GGYM.IFC
 		
 		private void attachModel(DatabaseIfc m)
 		{
-#if(GGDLL)
-			if (!LicenseRequested)
-			{
-				if (GGYM.Utils.ggSecurity.validateLicenseFile() == GGYM.Utils.ggSecurity.VALIDATE.VALID)
-					LicenseRequested = true;
-				else
-				{
 
-					GGYM.Utils.ggSecurity.generateLicenseFile(ggAssembly.mName, ggAssembly.Version);
-					 
-					throw new Exception("Please contact jonm@geometrygym.com requesting GeomGymIFC license! Data should be in windows clipboard.");
-
-				}
-			}
-#endif
 			bool added = false;
 			for (int icounter = m.mNextBlank; icounter < m.mIfcObjects.Count; icounter++)
 			{
@@ -85,8 +71,6 @@ namespace GGYM.IFC
 			}
 			mDatabase = m;
 		}
- 
-				
 	}
 	public interface IfcInterface { int Index { get; } string Name { get; set; } DatabaseIfc Database { get; } }
 

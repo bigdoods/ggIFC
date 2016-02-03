@@ -874,7 +874,7 @@ namespace GGYM.IFC
 					return IfcMapConversion.Parse(str);
 				if (string.Compare(keyword, IfcMappedItem.mKW, true) == 0)
 					return IfcMappedItem.Parse(str);
-				if (string.Compare(keyword, IfcMaterial.mKW, true) == 0)
+				if (string.Compare(suffix, "MATERIAL", true) == 0)
 					return IfcMaterial.Parse(str, schema);
 				if (string.Compare(keyword, IfcMaterialClassificationRelationship.mKW, true) == 0)
 					return IfcMaterialClassificationRelationship.Parse(str);
@@ -886,17 +886,17 @@ namespace GGYM.IFC
 					return IfcMaterialDefinitionRepresentation.Parse(str);
 				if (string.Compare(keyword, IfcMaterialLayer.mKW, true) == 0)
 					return IfcMaterialLayer.Parse(str, schema);
-				if (string.Compare(keyword, IfcMaterialLayerSet.mKW, true) == 0)
+				if (string.Compare(suffix, "MATERIALLAYERSET", true) == 0)
 					return IfcMaterialLayerSet.Parse(str, schema);
 				if (string.Compare(keyword, IfcMaterialLayerSetUsage.mKW, true) == 0)
 					return IfcMaterialLayerSetUsage.Parse(str, schema);
-				if (string.Compare(keyword, IfcMaterialLayerSetWithOffsets.mKW, true) == 0)
+				if (string.Compare(suffix, "MATERIALLAYERSETWITHOFFSETS", true) == 0)
 					return IfcMaterialLayerSetWithOffsets.Parse(str);
-				if (string.Compare(keyword, IfcMaterialLayerWithOffsets.mKW, true) == 0)
+				if (string.Compare(suffix, "MATERIALLAYERWITHOFFSETS", true) == 0)
 					return IfcMaterialLayerWithOffsets.Parse(str);
 				if (string.Compare(keyword, IfcMaterialList.mKW, true) == 0)
 					return IfcMaterialList.Parse(str);
-				if (string.Compare(keyword, IfcMaterialProfile.mKW, true) == 0)
+				if (string.Compare(suffix, "MATERIALPROFILE", true) == 0)
 					return IfcMaterialProfile.Parse(str);
 				if (string.Compare(keyword, IfcMaterialProfileSet.mKW, true) == 0)
 					return IfcMaterialProfileSet.Parse(str);
@@ -904,7 +904,7 @@ namespace GGYM.IFC
 					return IfcMaterialProfileSetUsage.Parse(str);
 				if (string.Compare(keyword, IfcMaterialProfileSetUsageTapering.mKW, true) == 0)
 					return IfcMaterialProfileSetUsageTapering.Parse(str);
-				if (string.Compare(keyword, IfcMaterialProfileWithOffsets.mKW, true) == 0)
+				if (string.Compare(suffix, "MATERIALPROFILEWITHOFFSETS", true) == 0)
 					return IfcMaterialProfileWithOffsets.Parse(str);
 				if (string.Compare(keyword, IfcMaterialProperties.mKW, true) == 0)
 					return IfcMaterialProperties.Parse(str,schema);

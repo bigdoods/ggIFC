@@ -195,6 +195,7 @@ namespace GGYM.IFC
 		internal IfcAdvancedFace(IfcAdvancedFace i) : base(i) { }
 		public IfcAdvancedFace(IfcFaceOuterBound bound, IfcSurface f, bool sense) : base(bound, f, sense) { }
 		public IfcAdvancedFace(List<IfcFaceBound> bounds, IfcSurface f, bool sense) : base(bounds, f, sense) { }
+		public IfcAdvancedFace(IfcFaceOuterBound outer, IfcFaceBound inner, IfcSurface f, bool sense) : base(outer,inner, f, sense) { }
 		internal new static IfcAdvancedFace Parse(string strDef) { IfcAdvancedFace f = new IfcAdvancedFace(); int ipos = 0; parseFields(f, ParserSTEP.SplitLineFields(strDef), ref ipos); return f; }
 		internal static void parseFields(IfcAdvancedFace f, List<string> arrFields, ref int ipos) { IfcFaceSurface.parseFields(f, arrFields, ref ipos); }
 		protected override string BuildString() { return (mDatabase.mSchema == Schema.IFC2x3 ? "" : base.BuildString()); }

@@ -1099,7 +1099,13 @@ namespace GGYM.IFC
 					if (pds != null && mPlacement == 0)
 					{
 						IfcElement element = this as IfcElement;
-						Placement = element == null ? new IfcLocalPlacement(new IfcAxis2Placement3D(mDatabase)) : new IfcLocalPlacement(element.getContainer().Placement, new IfcAxis2Placement3D(mDatabase));
+						if (element == null)
+							Placement = new IfcLocalPlacement(new IfcAxis2Placement3D(mDatabase));
+						else
+						{
+							IfcProduct product = element.getContainer();
+							Placement = (product == null ? new IfcLocalPlacement(new IfcAxis2Placement3D(mDatabase))  : new IfcLocalPlacement(product.Placement, new IfcAxis2Placement3D(mDatabase)));
+						}
 					}
 				}
 			}
