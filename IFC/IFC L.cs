@@ -24,9 +24,9 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public class IfcLaborResource : IfcConstructionResource
 	{
@@ -71,7 +71,7 @@ namespace GGYM.IFC
 		internal IfcTaskDurationEnum mDurationType = IfcTaskDurationEnum.NOTDEFINED;//	IfcTaskDurationEnum; 
 		internal IfcLagTime() : base() { }
 		internal IfcLagTime(IfcLagTime i) : base(i) { mLagValue = i.mLagValue; mDurationType = i.mDurationType; }
-		internal IfcLagTime(DatabaseIfc m, string name, IfcDataOriginEnum origin, string userOrigin, IfcTimeOrRatioSelect lag, IfcTaskDurationEnum nature, List<int> genData) : base(m, name, origin, userOrigin, genData) { mLagValue = lag; mDurationType = nature; }
+		internal IfcLagTime(DatabaseIfc m, string name, IfcDataOriginEnum origin, string userOrigin, IfcTimeOrRatioSelect lag, IfcTaskDurationEnum nature) : base(m, name, origin, userOrigin) { mLagValue = lag; mDurationType = nature; }
 		internal static IfcLagTime Parse(string strDef) { IfcLagTime f = new IfcLagTime(); int ipos = 0; parseFields(f, ParserSTEP.SplitLineFields(strDef), ref ipos); return f; }
 		internal static void parseFields(IfcLagTime f, List<string> arrFields, ref int ipos) { IfcSchedulingTime.parseFields(f, arrFields, ref ipos); }
 		protected override string BuildString() { return (mDatabase.mSchema == Schema.IFC2x3 ? "" : base.BuildString() + "," + mLagValue.String + ",." + mDurationType.ToString() + "."); }
@@ -109,7 +109,7 @@ namespace GGYM.IFC
 		internal new static IfcLampType Parse(string strDef) { IfcLampType t = new IfcLampType(); int ipos = 0; parseFields(t, ParserSTEP.SplitLineFields(strDef), ref ipos); return t; }
 		protected override string BuildString() { return base.BuildString() + ",." + mPredefinedType.ToString() + "."; }
 	}
-	public interface IfcLayeredItem { int Index { get; } List<IfcPresentationLayerAssignment> LayerAssignments { get; } }// = SELECT(IfcRepresentationItem, IfcRepresentation);
+	public interface IfcLayeredItem : IfcInterface { int Index { get; } List<IfcPresentationLayerAssignment> LayerAssignments { get; } }// = SELECT(IfcRepresentationItem, IfcRepresentation);
 	public class IfcLibraryInformation : IfcExternalInformation
 	{
 		public override string KeyWord { get { return mKW; } }
@@ -140,6 +140,10 @@ namespace GGYM.IFC
 		internal int mReferencedLibrary;//	 :	OPTIONAL IfcLibraryInformation;
 		//INVERSE
 		internal List<IfcRelAssociatesLibrary> mLibraryRefForObjects = new List<IfcRelAssociatesLibrary>();//IFC4 :	SET [0:?] OF IfcRelAssociatesLibrary FOR RelatingLibrary;
+
+		public string Description { get { return (mDescription == "$" ? "" : ParserIfc.Decode(mDescription)); } set { mDescription = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
+		public string Language { get { return (mLanguage == "$" ? "" : ParserIfc.Decode(mLanguage)); } set { mLanguage = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
+
 		internal IfcLibraryReference() : base() { }
 		internal IfcLibraryReference(IfcLibraryReference i) : base(i) { mDescription = i.mDescription; mLanguage = i.mLanguage; mReferencedLibrary = i.mReferencedLibrary; }
 		internal IfcLibraryReference(DatabaseIfc db) : base(db) { }
@@ -374,8 +378,8 @@ namespace GGYM.IFC
 
 		internal IfcLocalPlacement() : base() { }
 		internal IfcLocalPlacement(IfcLocalPlacement p) : base(p) { mPlacementRelTo = p.mPlacementRelTo; mRelativePlacement = p.mRelativePlacement; }
-		internal IfcLocalPlacement(IfcAxis2Placement placement) : base(placement.Database, null) { mRelativePlacement = placement.Index; }
-		internal IfcLocalPlacement(IfcObjectPlacement relativeTo, IfcAxis2Placement placement) : this(placement) { if(relativeTo != null) mPlacementRelTo = relativeTo.mIndex; }
+		public IfcLocalPlacement(IfcAxis2Placement placement) : base(placement.Database, null) { mRelativePlacement = placement.Index; }
+		public IfcLocalPlacement(IfcObjectPlacement relativeTo, IfcAxis2Placement placement) : this(placement) { if(relativeTo != null) mPlacementRelTo = relativeTo.mIndex; }
 		
 		internal static IfcLocalPlacement Parse(string strDef) { IfcLocalPlacement p = new IfcLocalPlacement(); int ipos = 0; parseFields(p, ParserSTEP.SplitLineFields(strDef), ref ipos); return p; }
 		internal static void parseFields(IfcLocalPlacement p, List<string> arrFields, ref int ipos) { IfcObjectPlacement.parseFields(p, arrFields, ref ipos); p.mPlacementRelTo = ParserSTEP.ParseLink(arrFields[ipos++]); p.mRelativePlacement = ParserSTEP.ParseLink(arrFields[ipos++]); }
@@ -397,25 +401,19 @@ namespace GGYM.IFC
 		internal double mSecondComponent;// : OPTIONAL IfcSecondInMinute;
 		internal int mZone;// OPTIONAL IfcCoordinatedUniversalTimeOffset;
 		internal int mDaylightSavingOffset;// : OPTIONAL IfcDaylightSavingHour; 
+
+		public IfcCoordinatedUniversalTimeOffset Zone { get { return mDatabase.mIfcObjects[mZone] as IfcCoordinatedUniversalTimeOffset; } set { mZone = (value == null ? 0 : value.mIndex); } }
+		public int DaylightSavingOffset { get { return mDaylightSavingOffset; } set { mDaylightSavingOffset = value; } }
 		internal IfcLocalTime() : base() { }
-		internal IfcLocalTime(IfcLocalTime v)
-			: base()
+		internal IfcLocalTime(IfcLocalTime t) : base()
 		{
-			mHourComponent = v.mHourComponent;
-			mMinuteComponent = v.mMinuteComponent;
-			mSecondComponent = v.mSecondComponent;
-			mZone = v.mZone;
-			mDaylightSavingOffset = v.mDaylightSavingOffset;
+			mHourComponent = t.mHourComponent;
+			mMinuteComponent = t.mMinuteComponent;
+			mSecondComponent = t.mSecondComponent;
+			mZone = t.mZone;
+			mDaylightSavingOffset = t.mDaylightSavingOffset;
 		}
-		internal IfcLocalTime(DatabaseIfc m, int hour, int min, int sec, IfcCoordinatedUniversalTimeOffset o, int dayLightOffset, List<int> genData)
-			: base(m)
-		{
-			mHourComponent = hour; mMinuteComponent = min; mSecondComponent = sec;
-			if (o != null)
-				mZone = o.mIndex;
-			mDaylightSavingOffset = dayLightOffset;
-			genData.Add(mIndex);
-		}
+		internal IfcLocalTime(DatabaseIfc m, int hour, int min, int sec) : base(m) { mHourComponent = hour; mMinuteComponent = min; mSecondComponent = sec; }
 		internal static void parseFields(IfcLocalTime s, List<string> arrFields, ref int ipos)
 		{
 			s.mHourComponent = int.Parse(arrFields[ipos++]);

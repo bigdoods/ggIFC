@@ -24,9 +24,9 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public partial class IfcTable : BaseClassIfc, IfcMetricValueSelect
 	{
@@ -121,14 +121,11 @@ namespace GGYM.IFC
 
 		internal IfcTableRow() : base() { }
 		internal IfcTableRow(IfcTableRow o) : base() { mRowCells.AddRange(o.mRowCells); mIsHeading = o.mIsHeading; }
-		public IfcTableRow(DatabaseIfc m, IfcValue val) : this(m, new List<IfcValue>() { val }, false, new List<int>()) { }
-		public IfcTableRow(DatabaseIfc m, List<IfcValue> vals) : this(m, vals, false, new List<int>()) { }
-		internal IfcTableRow(DatabaseIfc m, List<IfcValue> vals, bool isHeading, List<int> genData)
-			: base(m)
+		public IfcTableRow(DatabaseIfc m, IfcValue val) : this(m, new List<IfcValue>() { val }, false) { }
+		public IfcTableRow(DatabaseIfc m, List<IfcValue> vals, bool isHeading) : base(m)
 		{
 			mRowCells.AddRange(vals);
 			mIsHeading = isHeading;
-			genData.Add(mIndex);
 		}
 		internal static void parseFields(IfcTableRow t, List<string> arrFields, ref int ipos)
 		{
@@ -211,33 +208,7 @@ namespace GGYM.IFC
 
 		internal IfcTask() : base() { }
 		internal IfcTask(IfcTask o) : base(o) { mStatus = o.mStatus; mWorkMethod = o.mWorkMethod; mIsMilestone = o.mIsMilestone; mPriority = o.mPriority; mTaskTime = o.mTaskTime; mPredefinedType = o.mPredefinedType; }
-		internal IfcTask(DatabaseIfc m, string name, IfcTaskType t, string status, bool milestone, int priority, IfcScheduleTimeControl tc, IfcWorkControl control, IfcWorkCalendar wc, List<int> genData) //IFC2x3
-			: this(m, name, t, status, "", milestone, priority, null, genData) { if (control != null) control.assignTask(this, tc, genData); if (wc != null) wc.Assign(this); }
-		internal IfcTask(DatabaseIfc m, string name, IfcTaskType t, string status, bool milestone, int priority, IfcScheduleTimeControl tc, IfcTask task, IfcWorkCalendar wc, List<int> genData) //IFC2x3
-			: this(m, name, t, status, "", milestone, priority, null, genData) { if (task != null) { task.AddNested(this); tc.Assign(this); }; if (wc != null) wc.Assign(this); }
-		internal IfcTask(DatabaseIfc m, string name, IfcTaskType t, string status, bool milestone, int priority, IfcTaskTime tasktime, IfcWorkControl control, IfcWorkCalendar wc, List<int> genData)
-			: this(m, name, t, status, "", milestone, priority, tasktime, genData) { if (control != null) control.Assign(this); if (wc != null) wc.Assign(this); }
-		internal IfcTask(DatabaseIfc m, string name, IfcTaskType t, string status, bool milestone, int priority, IfcTaskTime tasktime, IfcTask task, IfcWorkCalendar wc, List<int> genData)
-			: this(m, name, t, status, "", milestone, priority, tasktime, genData) { if (task != null) task.AddNested(this); if (wc != null) wc.Assign(this); }
-		private IfcTask(DatabaseIfc m, string name, IfcTaskType t, string status, string workmethod, bool milestone, int priority, IfcTaskTime tasktime, List<int> genData)
-			: base(m)
-		{
-			Name = name;
-			if (m.mSchema == Schema.IFC2x3)
-				mIdentification = Guid.NewGuid().ToString();
-			RelatingType = t;	
-			if (t != null && mDatabase.mSchema == Schema.IFC2x3 && string.IsNullOrEmpty(ObjectType))
-				mObjectType = (t.PredefinedType == IfcTaskTypeEnum.USERDEFINED ? t.ProcessType : t.PredefinedType.ToString());
-			if (!string.IsNullOrEmpty(status))
-				mStatus = status.Replace("'", "");
-			if (!string.IsNullOrEmpty(workmethod))
-				mWorkMethod = workmethod.Replace("'", "");
-			mIsMilestone = milestone;
-			mPriority = priority;
-			if (tasktime != null)
-				mTaskTime = tasktime.mIndex;
-			genData.Add(mIndex);
-		}
+		
 		internal static IfcTask Parse(string strDef, Schema schema) { IfcTask t = new IfcTask(); int ipos = 0; parseFields(t, ParserSTEP.SplitLineFields(strDef), ref ipos, schema); return t; }
 		internal static void parseFields(IfcTask t, List<string> arrFields, ref int ipos, Schema schema)
 		{
@@ -277,18 +248,17 @@ namespace GGYM.IFC
 		internal DateTime ScheduleFinish { get { return IfcDateTime.Convert(mScheduleFinish); } }
 
 		internal IfcTaskTime() : base() { }
-		internal IfcTaskTime(IfcTaskTime i)
-			: base(i)
+		internal IfcTaskTime(IfcTaskTime t) : base(t)
 		{
-			mDurationType = i.mDurationType; mScheduleDuration = i.mScheduleDuration; mScheduleStart = i.mScheduleStart; mScheduleFinish = i.mScheduleFinish;
-			mEarlyStart = i.mEarlyStart; mEarlyFinish = i.mEarlyFinish; mLateStart = i.mLateStart; mLateFinish = i.mLateFinish; mFreeFloat = i.mFreeFloat; mTotalFloat = i.mTotalFloat;
-			mIsCritical = i.mIsCritical; mStatusTime = i.mStatusTime; mActualDuration = i.mActualDuration; mActualStart = i.mActualStart; mActualFinish = i.mActualFinish;
-			mRemainingTime = i.mRemainingTime; mCompletion = i.mCompletion;
+			mDurationType = t.mDurationType; mScheduleDuration = t.mScheduleDuration; mScheduleStart = t.mScheduleStart; mScheduleFinish = t.mScheduleFinish;
+			mEarlyStart = t.mEarlyStart; mEarlyFinish = t.mEarlyFinish; mLateStart = t.mLateStart; mLateFinish = t.mLateFinish; mFreeFloat = t.mFreeFloat; mTotalFloat = t.mTotalFloat;
+			mIsCritical = t.mIsCritical; mStatusTime = t.mStatusTime; mActualDuration = t.mActualDuration; mActualStart = t.mActualStart; mActualFinish = t.mActualFinish;
+			mRemainingTime = t.mRemainingTime; mCompletion = t.mCompletion;
 		}
 		internal IfcTaskTime(DatabaseIfc m, string name, IfcDataOriginEnum orig, string userOrigin, IfcTaskDurationEnum durationtype, IfcDuration schedDuration, DateTime schedStart, DateTime schedFinish,
 			DateTime earlyStart, DateTime earlyFinish, DateTime lateStart, DateTime lateFinish, IfcDuration freeFloat, IfcDuration totalFloat, bool isCritical, IfcDuration actualDuration, DateTime actualStart,
-			DateTime actualFinish, IfcDuration remainingTime, double fractionComplete, List<int> genData)
-			: base(m, name, orig, userOrigin, genData)
+			DateTime actualFinish, IfcDuration remainingTime, double fractionComplete)
+			: base(m, name, orig, userOrigin)
 		{
 			mDurationType = durationtype;
 			if (schedDuration != null)
@@ -576,8 +546,8 @@ namespace GGYM.IFC
 				mNormals = s.mNormals;
 			mClosed = s.mClosed;
 		}
-		protected IfcTessellatedFaceSet(DatabaseIfc m, IfcCartesianPointList3D pl, IEnumerable<Tuple<double, double, double>> normals, bool closed, List<int> genData)
-			: base(m, genData)
+		protected IfcTessellatedFaceSet(DatabaseIfc m, IfcCartesianPointList3D pl, IEnumerable<Tuple<double, double, double>> normals, bool closed)
+			: base(m)
 		{
 			mCoordinates = pl.mIndex;
 			if (normals != null)
@@ -617,7 +587,7 @@ namespace GGYM.IFC
 	{
 		protected IfcTessellatedItem() : base() { }
 		protected IfcTessellatedItem(IfcTessellatedItem o) : base(o) { }
-		protected IfcTessellatedItem(DatabaseIfc m, List<int> genData) : base(m, genData) { }
+		protected IfcTessellatedItem(DatabaseIfc m) : base(m) { }
 		protected override void Parse(string str, ref int ipos) { base.Parse(str, ref ipos); }
 	}
 	public partial class IfcTextLiteral : IfcGeometricRepresentationItem
@@ -738,23 +708,8 @@ namespace GGYM.IFC
 		internal new static string mKW = "IFCTEXTSTYLETEXTMODEL";
 		//internal int mDiffuseTransmissionColour, mDiffuseReflectionColour, mTransmissionColour, mReflectanceColour;//	 :	IfcColourRgb;
 		internal IfcTextStyleTextModel() : base() { }
-		internal IfcTextStyleTextModel(IfcTextStyleTextModel i)
-			: base(i)
-		{
-
-		}
-		//internal IfcTextStyleTextModel(DatabaseIfc m, Color diffuseTransmission, Color diffuseReflection, Color transmission, Color reflection, List<int> genData)
-		//	: base(m, genData)
-		//{
-		//	if (!diffuseTransmission.IsEmpty)
-		//		mDiffuseTransmissionColour = new IfcColourRgb(m, "", diffuseTransmission, genData).mIndex;
-		//	if (!diffuseReflection.IsEmpty)
-		//		mDiffuseReflectionColour = new IfcColourRgb(m, "", diffuseReflection, genData).mIndex;
-		//	if (!transmission.IsEmpty)
-		//		mTransmissionColour = new IfcColourRgb(m, "", transmission, genData).mIndex;
-		//	if (!reflection.IsEmpty)
-		//		mReflectanceColour = new IfcColourRgb(m, "", reflection, genData).mIndex;
-		//}
+		internal IfcTextStyleTextModel(IfcTextStyleTextModel m) : base(m) { }
+	 
 		protected override void parseFields(List<string> arrFields, ref int ipos)
 		{
 			base.parseFields(arrFields, ref ipos);
@@ -848,7 +803,7 @@ namespace GGYM.IFC
 		internal string mFinish; //:	IfcTime;
 		internal IfcTimePeriod() : base() { }
 		internal IfcTimePeriod(IfcTimePeriod m) : base() { mStart = m.mStart; mFinish = m.mFinish; }
-		internal IfcTimePeriod(DatabaseIfc m, DateTime start, DateTime finish, List<int> genData) : base(m) { mStart = IfcTime.convert(start); mFinish = IfcTime.convert(finish); genData.Add(mIndex); }
+		internal IfcTimePeriod(DatabaseIfc m, DateTime start, DateTime finish) : base(m) { mStart = IfcTime.convert(start); mFinish = IfcTime.convert(finish);}
 		internal static IfcTimePeriod Parse(string strDef) { IfcTimePeriod m = new IfcTimePeriod(); int ipos = 0; parseFields(m, ParserSTEP.SplitLineFields(strDef), ref ipos); return m; }
 		internal static void parseFields(IfcTimePeriod m, List<string> arrFields, ref int ipos) { m.mStart = arrFields[ipos++]; m.mFinish = arrFields[ipos++]; }
 		protected override string BuildString() { return base.BuildString() + ",'" + mStart + "','" + mFinish + "'"; }
@@ -908,7 +863,6 @@ namespace GGYM.IFC
 		protected IfcTopologicalRepresentationItem() : base() { }
 		protected IfcTopologicalRepresentationItem(IfcTopologicalRepresentationItem el) : base(el) { }
 		protected IfcTopologicalRepresentationItem(DatabaseIfc m) : base(m) { }
-		protected IfcTopologicalRepresentationItem(DatabaseIfc m, List<int> genData) : base(m) { genData.Add(mIndex); }
 		protected static void parseFields(IfcTopologicalRepresentationItem i, List<string> arrFields, ref int ipos) { IfcRepresentationItem.parseFields(i, arrFields, ref ipos); }
 	}
 	public partial class IfcTopologyRepresentation : IfcShapeModel
@@ -1043,7 +997,7 @@ namespace GGYM.IFC
 		internal IfcTrapeziumProfileDef(DatabaseIfc db, string name,double bottomXDim, double topXDim,double yDim,double topXOffset) : base(db)
 		{
 			if (mDatabase.mModelView != ModelView.Ifc4NotAssigned && mDatabase.mModelView != ModelView.If2x3NotAssigned)
-				throw new Exception("Invalid Model View for IfcTrapeziumProfileDef : " + db.IFCModelView.ToString());
+				throw new Exception("Invalid Model View for IfcTrapeziumProfileDef : " + db.ModelView.ToString());
 			Name = name;
 			mBottomXDim = bottomXDim;
 			mTopXDim = topXDim;
@@ -1068,16 +1022,13 @@ namespace GGYM.IFC
 		internal Tuple<int, int, int>[] mCoordIndex = new Tuple<int, int, int>[0];// : 	LIST [1:?] OF LIST [3:3] OF INTEGER;
 		internal Tuple<int, int, int>[] mNormalIndex = new Tuple<int, int, int>[0];// :	OPTIONAL LIST [1:?] OF LIST [3:3] OF INTEGER;  
 		internal IfcTriangulatedFaceSet() : base() { }
-		internal IfcTriangulatedFaceSet(IfcTriangulatedFaceSet s)
-			: base(s)
+		internal IfcTriangulatedFaceSet(IfcTriangulatedFaceSet s) : base(s)
 		{
 			mCoordIndex = s.mCoordIndex;
 			mNormalIndex = s.mNormalIndex;
 		}
 		public IfcTriangulatedFaceSet(DatabaseIfc m, IfcCartesianPointList3D pl, List<Tuple<double, double, double>> normals, bool closed, IEnumerable<Tuple<int, int, int>> coords, IEnumerable<Tuple<int, int, int>> normalIndices)
-			: base(m, pl, normals, closed, new List<int>()) { mCoordIndex = coords.ToArray(); if (normals != null) mNormalIndex = normalIndices.ToArray(); }
-		internal IfcTriangulatedFaceSet(DatabaseIfc m, IfcCartesianPointList3D pl, List<Tuple<double, double, double>> normals, bool closed, IEnumerable<Tuple<int, int, int>> coords, IEnumerable<Tuple<int, int, int>> normalIndices, List<int> genData)
-			: base(m, pl, normals, closed, genData) { mCoordIndex = coords.ToArray(); if (normals != null) mNormalIndex = normalIndices.ToArray(); }
+			: base(m, pl, normals, closed) { mCoordIndex = coords.ToArray(); if (normals != null) mNormalIndex = normalIndices.ToArray(); }
 		internal static IfcTriangulatedFaceSet Parse(string str)
 		{
 			IfcTriangulatedFaceSet t = new IfcTriangulatedFaceSet();
@@ -1377,6 +1328,8 @@ namespace GGYM.IFC
 			return str;
 		}
 		internal static IfcTypeObject Parse(string strDef) { IfcTypeObject o = new IfcTypeObject(); int ipos = 0; parseFields(o, ParserSTEP.SplitLineFields(strDef), ref ipos); return o; }
+
+		public void AddPropertySet(IfcPropertySetDefinition psd) { mHasPropertySets.Add(psd.mIndex); }
 	}
 	public abstract class IfcTypeProcess : IfcTypeObject //ABSTRACT SUPERTYPE OF(ONEOF(IfcEventType, IfcProcedureType, IfcTaskType))
 	{
@@ -1396,7 +1349,7 @@ namespace GGYM.IFC
 	}
 	public partial class IfcTypeProduct : IfcTypeObject, IfcProductSelect //ABSTRACT SUPERTYPE OF (ONEOF (IfcDoorStyle ,IfcElementType ,IfcSpatialElementType ,IfcWindowStyle)) 
 	{ 
-		private List<int> mRepresentationMaps = new List<int>();// : OPTIONAL LIST [1:?] OF UNIQUE IfcRepresentationMap;
+		internal List<int> mRepresentationMaps = new List<int>();// : OPTIONAL LIST [1:?] OF UNIQUE IfcRepresentationMap;
 		private string mTag = "$";// : OPTIONAL IfcLabel 
 
 		public List<IfcRepresentationMap> RepresentationMaps { get { return mRepresentationMaps.ConvertAll(x => mDatabase.mIfcObjects[x] as IfcRepresentationMap); } set { mRepresentationMaps = (value == null ? new List<int>() : value.ConvertAll(x => x.mIndex)); } }
@@ -1404,8 +1357,6 @@ namespace GGYM.IFC
 		//INVERSE
 		internal List<IfcRelAssignsToProduct> mReferencedBy = new List<IfcRelAssignsToProduct>();//	 :	SET OF IfcRelAssignsToProduct FOR RelatingProduct;
 		public List<IfcRelAssignsToProduct> ReferencedBy { get { return mReferencedBy; } }
-
-		DatabaseIfc IfcProductSelect.Model { get { return mDatabase; } }
 
 		protected IfcTypeProduct() : base() { }
 		protected IfcTypeProduct(IfcTypeProduct o) : base(o) { mRepresentationMaps = new List<int>(o.mRepresentationMaps.ToArray()); mTag = o.mTag; }

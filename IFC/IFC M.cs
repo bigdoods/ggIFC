@@ -24,9 +24,9 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public abstract partial class IfcManifoldSolidBrep : IfcSolidModel /*ABSTRACT SUPERTYPE OF (ONEOF(IfcFacetedBrep,IfcFacetedBrepWithVoids, IFC4 IfcAdvancedBrep))*/
 	{
@@ -49,8 +49,8 @@ namespace GGYM.IFC
 		internal double mXAxisAbscissa, mXAxisOrdinate, mScale;// 	:	OPTIONAL IfcReal;
 		internal IfcMapConversion() : base() { }
 		internal IfcMapConversion(IfcMapConversion i) : base(i) { mEastings = i.mEastings; mNorthings = i.mNorthings; mOrthogonalHeight = i.mOrthogonalHeight; mXAxisAbscissa = i.mXAxisAbscissa; mXAxisOrdinate = i.mXAxisOrdinate; mScale = i.mScale; }
-		internal IfcMapConversion(DatabaseIfc m, IfcCoordinateReferenceSystemSelect source, IfcCoordinateReferenceSystem target, double eastings, double northings, double orthogonalHeight, double XAxisAbscissa, double XAxisOrdinate, double scale, List<int> genData)
-			: base(m, source, target, genData)
+		internal IfcMapConversion(DatabaseIfc m, IfcCoordinateReferenceSystemSelect source, IfcCoordinateReferenceSystem target, double eastings, double northings, double orthogonalHeight, double XAxisAbscissa, double XAxisOrdinate, double scale)
+			: base(m, source, target)
 		{
 			mEastings = eastings;
 			mNorthings = northings;
@@ -74,9 +74,6 @@ namespace GGYM.IFC
 	}
 	public partial class IfcMappedItem : IfcRepresentationItem
 	{
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCMAPPEDITEM";
-
 		private int mMappingSource;// : IfcRepresentationMap;
 		private int mMappingTarget;// : IfcCartesianTransformationOperator;
 
@@ -84,9 +81,9 @@ namespace GGYM.IFC
 		internal IfcCartesianTransformationOperator MappingTarget { get { return mDatabase.mIfcObjects[mMappingTarget] as IfcCartesianTransformationOperator; } }
 
 		internal IfcMappedItem() : base() { }
-		internal IfcMappedItem(IfcMappedItem obj) : base(obj) { mMappingSource = obj.mMappingSource; mMappingTarget = obj.mMappingTarget; }
-		internal IfcMappedItem(IfcRepresentationMap rm, IfcCartesianTransformationOperator co, List<int> genData) : base(rm.mDatabase) { mMappingSource = rm.mIndex; mMappingTarget = co.mIndex; genData.Add(mIndex); }
-		internal IfcMappedItem(IfcRepresentationMap rm, List<int> genData) : base(rm.mDatabase) { mMappingSource = rm.mIndex; mMappingTarget = new IfcCartesianTransformationOperator3D(rm.mDatabase, genData).mIndex; genData.Add(mIndex); }
+		internal IfcMappedItem(IfcMappedItem i) : base(i) { mMappingSource = i.mMappingSource; mMappingTarget = i.mMappingTarget; }
+		internal IfcMappedItem(IfcRepresentationMap rm, IfcCartesianTransformationOperator co) : base(rm.mDatabase) { mMappingSource = rm.mIndex; mMappingTarget = co.mIndex; }
+		
 		internal static void parseFields(IfcMappedItem i, List<string> arrFields, ref int ipos) { IfcRepresentationItem.parseFields(i, arrFields, ref ipos); i.mMappingSource = ParserSTEP.ParseLink(arrFields[ipos++]); i.mMappingTarget = ParserSTEP.ParseLink(arrFields[ipos++]); }
 		internal static IfcMappedItem Parse(string strDef) { IfcMappedItem i = new IfcMappedItem(); int ipos = 0; parseFields(i, ParserSTEP.SplitLineFields(strDef), ref ipos); return i; }
 		protected override string BuildString() { return base.BuildString() + "," + ParserSTEP.LinkToString(mMappingSource) + "," + ParserSTEP.LinkToString(mMappingTarget); }
@@ -101,7 +98,6 @@ namespace GGYM.IFC
 
 		//INVERSE
 		internal IfcMaterialDefinitionRepresentation mHasRepresentation = null;//	 : 	SET [0:1] OF IfcMaterialDefinitionRepresentation FOR RepresentedMaterial;
-		public IfcMaterialDefinitionRepresentation HasRepresentation { get { return mHasRepresentation; } }
 		//internal IfcMaterialclassificationRelationship mClassifiedAs = null;//	 : 	SET [0:1] OF IfcMaterialClassificationRelationship FOR classifiedMaterial;
 		internal List<IfcMaterialPropertiesSuperSeded> mHasPropertiesSS = new List<IfcMaterialPropertiesSuperSeded>();
 		internal List<IfcMaterialRelationship> mIsRelatedWith = new List<IfcMaterialRelationship>();//	:	SET OF IfcMaterialRelationship FOR RelatedMaterials;
@@ -110,6 +106,9 @@ namespace GGYM.IFC
 		public override string Name { get { return ParserIfc.Decode(mName); } set { mName = (string.IsNullOrEmpty(value) ? "UNKNOWN NAME" : ParserIfc.Encode(value.Replace("'", ""))); } }
 		public string Description { get { return (mDescription == "$" ? "" : ParserIfc.Decode(mDescription)); } set { mDescription = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
 		public string Category { get { return (mCategory == "$" ? "" : ParserIfc.Decode(mCategory)); } set { mDescription = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
+		public IfcMaterialDefinitionRepresentation HasRepresentation { get { return mHasRepresentation; } }
+
+		public override IfcMaterial PrimaryMaterial { get { return this; } }
 
 		public IfcMaterial() : base() { }
 		internal IfcMaterial(IfcMaterial m) : base(m) { mName = m.mName; mDescription = m.mDescription; mCategory = m.mCategory; }
@@ -143,7 +142,7 @@ namespace GGYM.IFC
 		internal int mClassifiedMaterial;// : IfcMaterial;
 		internal IfcMaterialClassificationRelationship() : base() { }
 		internal IfcMaterialClassificationRelationship(IfcMaterialClassificationRelationship m) : base() { mMaterialClassifications = new List<int>(m.mMaterialClassifications.ToArray()); mClassifiedMaterial = m.mClassifiedMaterial; }
-		internal IfcMaterialClassificationRelationship(DatabaseIfc m, List<int> genData) : base(m) { genData.Add(mIndex); }
+		internal IfcMaterialClassificationRelationship(DatabaseIfc db) : base(db) { }
 		internal static IfcMaterialClassificationRelationship Parse(string strDef) { IfcMaterialClassificationRelationship r = new IfcMaterialClassificationRelationship(); int ipos = 0; parseFields(r, ParserSTEP.SplitLineFields(strDef), ref ipos); return r; }
 		internal static void parseFields(IfcMaterialClassificationRelationship r, List<string> arrFields, ref int ipos) { r.mMaterialClassifications = ParserSTEP.SplitListLinks(arrFields[ipos++]); r.mClassifiedMaterial = ParserSTEP.ParseLink(arrFields[ipos++]); }
 		protected override string BuildString()
@@ -166,10 +165,12 @@ namespace GGYM.IFC
 
 		public override string Name { get { return (mName == "$" ? "" : ParserIfc.Decode(mName)); } set { mName = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
 		public string Description { get { return (mDescription == "$" ? "" : ParserIfc.Decode(mDescription)); } set { mDescription = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
+		public IfcMaterial Material { get { return mDatabase.mIfcObjects[mMaterial] as IfcMaterial; } set { mMaterial = (value == null ? 0 : value.mIndex); } }
+		public double Fraction { get { return mFraction; } set { mFraction = value; } }
 		public string Category { get { return (mCategory == "$" ? "" : ParserIfc.Decode(mCategory)); } set { mCategory = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
 
-		public override IfcMaterial Material { get { return mDatabase.mIfcObjects[mMaterial] as IfcMaterial; } }
-
+		public override IfcMaterial PrimaryMaterial { get { return Material; } }
+		
 		internal IfcMaterialConstituent() : base() { }
 		internal IfcMaterialConstituent(IfcMaterialConstituent m) : base(m) { mName = m.mName; mDescription = m.mDescription; mMaterial = m.mMaterial; mFraction = m.mFraction; mCategory = m.mCategory; }
 		public IfcMaterialConstituent(string name, string desc, IfcMaterial mat, double fraction, string category)
@@ -199,21 +200,22 @@ namespace GGYM.IFC
 		internal new static string mKW = "IFCMATERIALCONSTITUENTSET";
 		internal string mName = "$";// : OPTIONAL IfcLabel;
 		internal string mDescription = "$";// : OPTIONAL IfcText 
-		internal List<int> mMaterialMaterialConstituents = new List<int>();// LIST [1:?] OF IfcMaterialConstituent;
+		internal List<int> mMaterialConstituents = new List<int>();// LIST [1:?] OF IfcMaterialConstituent;
 
 		public override string Name { get { return (mName == "$" ? "" : ParserIfc.Decode(mName)); } set { mName = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
 		public string Description { get { return (mDescription == "$" ? "" : ParserIfc.Decode(mDescription)); } set { mDescription = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
+		public List<IfcMaterialConstituent> MaterialConstituents { get { return mMaterialConstituents.ConvertAll(x => mDatabase.mIfcObjects[x] as IfcMaterialConstituent); } }
 
-		public override IfcMaterial Material { get { return (mDatabase.mIfcObjects[mMaterialMaterialConstituents[0]] as IfcMaterialConstituent).Material; } }
+		public override IfcMaterial PrimaryMaterial { get { return MaterialConstituents[0].PrimaryMaterial; } }
 
 		internal IfcMaterialConstituentSet() : base() { }
-		internal IfcMaterialConstituentSet(IfcMaterialConstituentSet m) : base(m) { mMaterialMaterialConstituents = new List<int>(m.mMaterialMaterialConstituents.ToArray()); mName = m.mName; mDescription = m.mDescription; }
+		internal IfcMaterialConstituentSet(IfcMaterialConstituentSet m) : base(m) { mMaterialConstituents = new List<int>(m.mMaterialConstituents.ToArray()); mName = m.mName; mDescription = m.mDescription; }
 		public IfcMaterialConstituentSet(string name, string desc, List<IfcMaterialConstituent> mcs)
 			: base(mcs[0].mDatabase)
 		{
 			Name = name;
 			Description = desc;
-			mMaterialMaterialConstituents = mcs.ConvertAll(x => x.mIndex);
+			mMaterialConstituents = mcs.ConvertAll(x => x.mIndex);
 		}
 		internal static IfcMaterialConstituentSet Parse(string strDef) { IfcMaterialConstituentSet m = new IfcMaterialConstituentSet(); int ipos = 0; parseFields(m, ParserSTEP.SplitLineFields(strDef), ref ipos); return m; }
 		internal static void parseFields(IfcMaterialConstituentSet m, List<string> arrFields, ref int ipos)
@@ -221,13 +223,13 @@ namespace GGYM.IFC
 			IfcMaterialDefinition.parseFields(m, arrFields, ref ipos);
 			m.mName = arrFields[ipos++].Replace("'", "");
 			m.mDescription = arrFields[ipos++].Replace("'", "");
-			m.mMaterialMaterialConstituents = ParserSTEP.SplitListLinks(arrFields[ipos++]);
+			m.mMaterialConstituents = ParserSTEP.SplitListLinks(arrFields[ipos++]);
 		}
 		protected override string BuildString()
 		{
-			string str = ParserSTEP.LinkToString(mMaterialMaterialConstituents[0]);
-			for (int icounter = 1; icounter < mMaterialMaterialConstituents.Count; icounter++)
-				str += "," + ParserSTEP.LinkToString(mMaterialMaterialConstituents[icounter]);
+			string str = ParserSTEP.LinkToString(mMaterialConstituents[0]);
+			for (int icounter = 1; icounter < mMaterialConstituents.Count; icounter++)
+				str += "," + ParserSTEP.LinkToString(mMaterialConstituents[icounter]);
 			return base.BuildString() + (mName == "$" ? ",$," : ",'" + mName + "',") + (mDescription == "$" ? "$,(" : "'" + mDescription + "',(") + str + ")";
 		}
 	}
@@ -253,6 +255,8 @@ namespace GGYM.IFC
 		public List<IfcExternalReferenceRelationship> HasExternalReferences { get { return mHasExternalReferences; } }
 		internal List<IfcMaterialProperties> HasProperties { get { return mHasProperties; } }
 		public List<IfcResourceConstraintRelationship> HasConstraintRelationships { get { return mHasConstraintRelationships; } }
+
+		public virtual IfcMaterial PrimaryMaterial { get { return null; } }
 
 		protected IfcMaterialDefinition() : base() { }
 		protected IfcMaterialDefinition(IfcMaterialDefinition i) : base() { }
@@ -289,8 +293,6 @@ namespace GGYM.IFC
 	}
 	public partial class IfcMaterialLayer : IfcMaterialDefinition
 	{
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCMATERIALLAYER";
 		internal int mMaterial;// : OPTIONAL IfcMaterial;
 		internal double mLayerThickness;// ::	IfcNonNegativeLengthMeasure IFC4Chagne IfcPositiveLengthMeasure;
 		internal IfcLogicalEnum mIsVentilated = IfcLogicalEnum.UNKNOWN;// : OPTIONAL IfcLogical; 
@@ -299,13 +301,15 @@ namespace GGYM.IFC
 		internal string mCategory = "$";// : OPTIONAL IfcLabel; IFC4
 		internal double mPriority = 0;//	 :	OPTIONAL IfcNormalisedRatioMeasure;
 
-		public override IfcMaterial Material { get { return mDatabase.mIfcObjects[mMaterial] as IfcMaterial; } set { mMaterial = (value == null ? 0 : value.mIndex); } }
+		public IfcMaterial Material { get { return mDatabase.mIfcObjects[mMaterial] as IfcMaterial; } set { mMaterial = (value == null ? 0 : value.mIndex); } }
 		public double LayerThickness { get { return mLayerThickness; } set { mLayerThickness = value; } }
 		public IfcLogicalEnum IsVentilated { get { return mIsVentilated; } set { mIsVentilated = value; } }
 		public override string Name { get { return (mName == "$" ? "" : ParserIfc.Decode(mName)); } set { mName = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
 		public string Description { get { return (mDescription == "$" ? "" : ParserIfc.Decode(mDescription)); } set { mDescription = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
 		public string Category { get { return (mCategory == "$" ? "" : ParserIfc.Decode(mCategory)); } set { mCategory = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
 		public double Priority { get { return mPriority; } set { mPriority = value; } }
+
+		public override IfcMaterial PrimaryMaterial { get { return Material; } }
 
 		internal IfcMaterialLayer() : base() { }
 		internal IfcMaterialLayer(IfcMaterialLayer m) : base(m) { mMaterial = m.mMaterial; mLayerThickness = m.mLayerThickness; mIsVentilated = m.mIsVentilated; }
@@ -357,10 +361,11 @@ namespace GGYM.IFC
 		public string Description { get { return (mDescription == "$" ? "" : ParserIfc.Decode(mDescription)); } set { mDescription = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
 
 		public override string Name { get { return LayerSetName; } set { LayerSetName = value; } }
-		public override IfcMaterial Material { get { return (mMaterialLayers.Count != 1 ? null : MaterialLayers[0].Material); } }
-
+		public override IfcMaterial PrimaryMaterial { get { return (mMaterialLayers.Count != 1 ? null : MaterialLayers[0].Material); } }
+		
 		internal IfcMaterialLayerSet() : base() { }
 		internal IfcMaterialLayerSet(IfcMaterialLayerSet m) : base(m) { mMaterialLayers = new List<int>(m.mMaterialLayers.ToArray()); mLayerSetName = m.mLayerSetName; mDescription = m.mDescription; }
+		protected IfcMaterialLayerSet(DatabaseIfc db) : base(db) { }
 		public IfcMaterialLayerSet(IfcMaterialLayer layer, string name) : base(layer.mDatabase) { mMaterialLayers.Add(layer.mIndex); Name = name;  }
 		public IfcMaterialLayerSet(List<IfcMaterialLayer> layers, string name) : base(layers[0].mDatabase)
 		{
@@ -404,12 +409,11 @@ namespace GGYM.IFC
 		internal double OffsetFromReferenceLine { get { return mOffsetFromReferenceLine; } set { mOffsetFromReferenceLine = value; } }
 		internal double ReferenceExtent { get { return mReferenceExtent; } }
 
-		public override IfcMaterial Material { get { return ForLayerSet.Material; } }	
-
+		public override IfcMaterial PrimaryMaterial { get { return ForLayerSet.PrimaryMaterial; } }	
+		
 		internal IfcMaterialLayerSetUsage() : base() { }
 		internal IfcMaterialLayerSetUsage(IfcMaterialLayerSetUsage m) : base(m) { mForLayerSet = m.mForLayerSet; mLayerSetDirection = m.mLayerSetDirection; mDirectionSense = m.mDirectionSense; mOffsetFromReferenceLine = m.mOffsetFromReferenceLine; mReferenceExtent = m.mReferenceExtent; }
-		internal IfcMaterialLayerSetUsage(DatabaseIfc m, IfcMaterialLayerSet ls, IfcLayerSetDirectionEnum dir, IfcDirectionSenseEnum sense, double offset, List<int> genData)
-			: base(m, genData)
+		internal IfcMaterialLayerSetUsage(DatabaseIfc m, IfcMaterialLayerSet ls, IfcLayerSetDirectionEnum dir, IfcDirectionSenseEnum sense, double offset) : base(m)
 		{
 			mForLayerSet = ls.mIndex;
 			mLayerSetDirection = dir;
@@ -502,7 +506,8 @@ namespace GGYM.IFC
 			}
 			set { mAssociatedTo.Add(value); }
 		}
-		public IfcMaterial Material { get { return mDatabase.mIfcObjects[mMaterials[0]] as IfcMaterial; } }
+		
+		public IfcMaterial PrimaryMaterial { get { return mDatabase.mIfcObjects[mMaterials[0]] as IfcMaterial; } }
 
 		internal IfcMaterialList() : base() { }
 		internal IfcMaterialList(IfcMaterialList m) : base() { mMaterials = new List<int>(m.mMaterials.ToArray()); }
@@ -526,14 +531,16 @@ namespace GGYM.IFC
 		internal string mCategory = "$";// : OPTIONAL IfcLabel
 		// INVERSE
 		private IfcMaterialProfileSet mToMaterialProfileSet = null;// : IfcMaterialProfileSet FOR 
-
+		
+		public IfcMaterial Material { get { return mDatabase.mIfcObjects[mMaterial] as IfcMaterial; } set { mMaterial = (value == null ? 0 : value.mIndex); } }
 		public override string Name { get { return (mName == "$" ? "" : ParserIfc.Decode(mName)); } set { mName = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
 		public string Description { get { return (mDescription == "$" ? "" : ParserIfc.Decode(mDescription)); } set { mDescription = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
-		public override IfcMaterial Material { get { return mDatabase.mIfcObjects[mMaterial] as IfcMaterial; } set { mMaterial = (value == null ? 0 : value.mIndex); } }
 		public IfcProfileDef Profile { get { return mDatabase.mIfcObjects[mProfile] as IfcProfileDef; } set { mProfile = (value == null ? 0 : value.mIndex); } }
 		public string Category { get { return (mCategory == "$" ? "" : ParserIfc.Decode(mCategory)); } set { mCategory = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
 		public double Priority { get { return mPriority; } set { mPriority = value; } }
 		public IfcMaterialProfileSet ToMaterialProfileSet { get { return mToMaterialProfileSet; } set { mToMaterialProfileSet = value; } }
+
+		public override IfcMaterial PrimaryMaterial { get { return Material; } }
 
 		internal IfcMaterialProfile() : base() { }
 		internal IfcMaterialProfile(IfcMaterialProfile p) : base(p) { mName = p.mName; mDescription = p.mDescription; mMaterial = p.mMaterial; mProfile = p.mProfile; mPriority = p.mPriority; mCategory = p.mCategory; }
@@ -567,15 +574,12 @@ namespace GGYM.IFC
 		internal List<int> mMaterialProfiles = new List<int>();// LIST [1:?] OF IfcMaterialProfile;
 		internal int mCompositeProfile;// : OPTIONAL IfcCompositeProfileDef; 
 
-		public override string Name
-		{
-			get { return (mName == "$" ? "" : ParserIfc.Decode(mName)); }
-			set { mName = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); }
-		}
+		public override string Name { get { return (mName == "$" ? "" : ParserIfc.Decode(mName)); } set { mName = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
 		public string Description { get { return (mDescription == "$" ? "" : ParserIfc.Decode(mDescription)); } set { mDescription = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
 		public List<IfcMaterialProfile> MaterialProfiles { get { return mMaterialProfiles.ConvertAll(x=>mDatabase.mIfcObjects[x] as IfcMaterialProfile); } }
 
-		public override IfcMaterial Material { get { return (mMaterialProfiles.Count != 1 ? null : MaterialProfiles[0].Material); } }
+		public override IfcMaterial PrimaryMaterial { get { return (mMaterialProfiles.Count != 1 ? null : MaterialProfiles[0].Material); } }
+		
 
 		internal IfcMaterialProfileSet() : base() { }
 		internal IfcMaterialProfileSet(IfcMaterialProfileSet m) : base(m) { mName = m.mName; mDescription = m.mDescription; mMaterialProfiles = new List<int>(m.mMaterialProfiles.ToArray()); mCompositeProfile = m.mCompositeProfile; }
@@ -633,15 +637,16 @@ namespace GGYM.IFC
 
 		internal IfcMaterialProfileSet ForProfileSet { get { return mDatabase.mIfcObjects[mForProfileSet] as IfcMaterialProfileSet; } }
 
+		public override IfcMaterial PrimaryMaterial { get { return ForProfileSet.PrimaryMaterial; } }
+
 		internal IfcMaterialProfileSetUsage() : base() { }
 		internal IfcMaterialProfileSetUsage(IfcMaterialProfileSetUsage m) : base(m) { mForProfileSet = m.mForProfileSet; mCardinalPoint = m.mCardinalPoint; mReferenceExtent = m.mReferenceExtent; }
-		public IfcMaterialProfileSetUsage(DatabaseIfc m, IfcMaterialProfileSet ps, IfcCardinalPointReference ip, double refExtent, List<int> genData)
-			: base(m, genData) { mForProfileSet = ps.mIndex; mCardinalPoint = ip; mReferenceExtent = refExtent; }
+		public IfcMaterialProfileSetUsage(DatabaseIfc m, IfcMaterialProfileSet ps, IfcCardinalPointReference ip, double refExtent)
+			: base(m) { mForProfileSet = ps.mIndex; mCardinalPoint = ip; mReferenceExtent = refExtent; }
 		internal static IfcMaterialProfileSetUsage Parse(string strDef) { IfcMaterialProfileSetUsage u = new IfcMaterialProfileSetUsage(); int ipos = 0; parseFields(u, ParserSTEP.SplitLineFields(strDef), ref ipos); return u; }
 		internal static void parseFields(IfcMaterialProfileSetUsage m, List<string> arrFields, ref int ipos) { IfcMaterialUsageDefinition.parseFields(m, arrFields, ref ipos); m.mForProfileSet = ParserSTEP.ParseLink(arrFields[ipos++]); m.mCardinalPoint = (IfcCardinalPointReference)ParserSTEP.ParseInt(arrFields[ipos++]); m.mReferenceExtent = ParserSTEP.ParseDouble(arrFields[ipos++]); }
 		protected override string BuildString() { return (mDatabase.mSchema == Schema.IFC2x3 || mAssociatedTo == null || Associates.mRelatedObjects.Count == 0 ? "" : base.BuildString() + "," + ParserSTEP.LinkToString(mForProfileSet) + "," + (mCardinalPoint == IfcCardinalPointReference.DEFAULT ? "$" : ((int)mCardinalPoint).ToString()) + "," + ParserSTEP.DoubleOptionalToString(mReferenceExtent)); }
 
-		public override IfcMaterial Material { get { return (mDatabase.mIfcObjects[mForProfileSet] as IfcMaterialProfileSet).Material; } }
 	}
 	public partial class IfcMaterialProfileSetUsageTapering : IfcMaterialProfileSetUsage //IFC4
 	{
@@ -652,8 +657,8 @@ namespace GGYM.IFC
 		internal IfcMaterialProfileSet ForProfileEndSet { get { return mDatabase.mIfcObjects[mForProfileEndSet] as IfcMaterialProfileSet; } }
 		internal IfcMaterialProfileSetUsageTapering() : base() { }
 		internal IfcMaterialProfileSetUsageTapering(IfcMaterialProfileSetUsageTapering m) : base(m) { mForProfileSet = m.mForProfileSet; mCardinalEndPoint = m.mCardinalEndPoint; }
-		public IfcMaterialProfileSetUsageTapering(DatabaseIfc m, IfcMaterialProfileSet ps, IfcCardinalPointReference ip, double refExtent, IfcMaterialProfileSet eps, IfcCardinalPointReference eip, List<int> genData)
-			: base(m, ps, ip, refExtent, genData) { mForProfileEndSet = eps.mIndex; mCardinalEndPoint = eip; }
+		public IfcMaterialProfileSetUsageTapering(DatabaseIfc m, IfcMaterialProfileSet ps, IfcCardinalPointReference ip, double refExtent, IfcMaterialProfileSet eps, IfcCardinalPointReference eip)
+			: base(m, ps, ip, refExtent) { mForProfileEndSet = eps.mIndex; mCardinalEndPoint = eip; }
 		internal new static IfcMaterialProfileSetUsageTapering Parse(string strDef) { IfcMaterialProfileSetUsageTapering u = new IfcMaterialProfileSetUsageTapering(); int ipos = 0; parseFields(u, ParserSTEP.SplitLineFields(strDef), ref ipos); return u; }
 		internal static void parseFields(IfcMaterialProfileSetUsageTapering m, List<string> arrFields, ref int ipos) { IfcMaterialProfileSetUsage.parseFields(m, arrFields, ref ipos); m.mForProfileEndSet = ParserSTEP.ParseLink(arrFields[ipos++]); m.mCardinalEndPoint = (IfcCardinalPointReference)ParserSTEP.ParseInt(arrFields[ipos++]); }
 		protected override string BuildString() { return (mDatabase.mSchema == Schema.IFC2x3 || mAssociatedTo == null || Associates.mRelatedObjects.Count == 0 ? "" : base.BuildString() + "," + ParserSTEP.LinkToString(mForProfileEndSet) + "," + (int)mCardinalEndPoint); }
@@ -683,7 +688,7 @@ namespace GGYM.IFC
 		internal int mMaterial;// : IfcMaterial;  
 		protected IfcMaterialPropertiesSuperSeded() : base() { }
 		protected IfcMaterialPropertiesSuperSeded(IfcMaterialPropertiesSuperSeded m) : base() { mMaterial = m.mMaterial; }
-		protected IfcMaterialPropertiesSuperSeded(IfcMaterial mat, List<int> genData) : base(mat.mDatabase) { if (mat.mDatabase.mSchema != Schema.IFC2x3) throw new Exception(KeyWord + " Depreceated IFC4!"); mMaterial = mat.mIndex; genData.Add(mIndex); }
+		protected IfcMaterialPropertiesSuperSeded(IfcMaterial mat) : base(mat.mDatabase) { if (mat.mDatabase.mSchema != Schema.IFC2x3) throw new Exception(KeyWord + " Depreceated IFC4!"); mMaterial = mat.mIndex; }
 		protected static void parseFields(IfcMaterialPropertiesSuperSeded p, List<string> arrFields, ref int ipos) { p.mMaterial = ParserSTEP.ParseLink(arrFields[ipos++]); }
 		protected override string BuildString() { return base.BuildString() + "," + ParserSTEP.LinkToString(mMaterial); }
 		internal void relate()
@@ -695,14 +700,12 @@ namespace GGYM.IFC
 	}
 	public partial class IfcMaterialProperties : IfcExtendedProperties //IFC4
 	{
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCMATERIALPROPERTIES";
 		private int mMaterial;// : IfcMaterialDefinition; 
 		internal IfcMaterialDefinition Material { get { return mDatabase.mIfcObjects[mMaterial] as IfcMaterialDefinition; } }
 
 		internal IfcMaterialProperties() : base() { }
 		internal IfcMaterialProperties(IfcMaterialProperties i) : base(i) { mMaterial = i.mMaterial; }
-		internal IfcMaterialProperties(string name, List<IfcProperty> props, IfcMaterialDefinition mat, List<int> genData) : base(mat.mDatabase, name, props, genData) { mMaterial = mat.mIndex; }
+		internal IfcMaterialProperties(string name, List<IfcProperty> props, IfcMaterialDefinition mat) : base(name, props) { mMaterial = mat.mIndex; }
 
 		internal static IfcMaterialProperties Parse(string strDef, Schema schema) { IfcMaterialProperties b = new IfcMaterialProperties(); int ipos = 0; parseFields(b, ParserSTEP.SplitLineFields(strDef), ref ipos,schema); return b; }
 		internal static void parseFields(IfcMaterialProperties b, List<string> arrFields, ref int ipos, Schema schema) { IfcExtendedProperties.parseFields(b, arrFields, ref ipos,schema); b.mMaterial = ParserSTEP.ParseLink(arrFields[ipos++]); }
@@ -728,8 +731,8 @@ namespace GGYM.IFC
 		internal string mExpression = "$";//:	OPTIONAL IfcLabel;
 		internal IfcMaterialRelationship() : base() { }
 		internal IfcMaterialRelationship(IfcMaterialRelationship i) : base(i) { mRelatingMaterial = i.mRelatingMaterial; mRelatedMaterials.AddRange(i.mRelatedMaterials); mExpression = i.mExpression; }
-		internal IfcMaterialRelationship(DatabaseIfc m, string name, string description, IfcMaterial mat, List<IfcMaterial> related, string expr, List<int> genData)
-			: base(m, name, description) { mRelatingMaterial = mat.mIndex; mRelatedMaterials = related.ConvertAll(x => x.mIndex); if (!string.IsNullOrEmpty(expr)) mExpression = expr.Replace("'", ""); genData.Add(mIndex); }
+		internal IfcMaterialRelationship(string name, string description, IfcMaterial mat, List<IfcMaterial> related, string expr)
+			: base(mat.mDatabase, name, description) { mRelatingMaterial = mat.mIndex; mRelatedMaterials = related.ConvertAll(x => x.mIndex); if (!string.IsNullOrEmpty(expr)) mExpression = expr.Replace("'", "");  }
 		internal static IfcMaterialRelationship Parse(string strDef, Schema schema) { IfcMaterialRelationship m = new IfcMaterialRelationship(); int ipos = 0; parseFields(m, ParserSTEP.SplitLineFields(strDef), ref ipos,schema); return m; }
 		internal static void parseFields(IfcMaterialRelationship m, List<string> arrFields, ref int ipos, Schema schema)
 		{
@@ -759,9 +762,10 @@ namespace GGYM.IFC
 	public partial interface IfcMaterialSelect : IfcInterface  //IFC4 SELECT (IfcMaterialDefinition ,IfcMaterialList ,IfcMaterialUsageDefinition);
 	{
 		IfcRelAssociatesMaterial Associates { get; set; }
-		IfcMaterial Material { get; }
+
+		IfcMaterial PrimaryMaterial { get; } //Geometry Gym Property
 	}
-	public abstract class IfcMaterialUsageDefinition : BaseClassIfc, IfcMaterialSelect // ABSTRACT SUPERTYPE OF(ONEOF(IfcMaterialLayerSetUsage, IfcMaterialProfileSetUsage));
+	public abstract partial class IfcMaterialUsageDefinition : BaseClassIfc, IfcMaterialSelect // ABSTRACT SUPERTYPE OF(ONEOF(IfcMaterialLayerSetUsage, IfcMaterialProfileSetUsage));
 	{	//INVERSE 
 		internal List<IfcRelAssociatesMaterial> mAssociatedTo = new List<IfcRelAssociatesMaterial>();
 		public IfcRelAssociatesMaterial Associates
@@ -777,29 +781,24 @@ namespace GGYM.IFC
 			set { mAssociatedTo.Add(value); }
 		}
 
-		//DatabaseIfc IfcMaterialSelect.Model { get { return mModel; } }
+		public abstract IfcMaterial PrimaryMaterial { get; }
 
 		protected IfcMaterialUsageDefinition() : base() { }
 		protected IfcMaterialUsageDefinition(IfcMaterialUsageDefinition i) : base() { }
-		protected IfcMaterialUsageDefinition(DatabaseIfc m, List<int> genData) : base(m) { IfcRelAssociatesMaterial am = new IfcRelAssociatesMaterial(this); genData.Add(am.mIndex); genData.Add(mIndex); }
+		protected IfcMaterialUsageDefinition(DatabaseIfc m) : base(m) { IfcRelAssociatesMaterial am = new IfcRelAssociatesMaterial(this); }
 		protected static void parseFields(IfcMaterialUsageDefinition m, List<string> arrFields, ref int ipos) { }
-		public abstract IfcMaterial Material { get; }
-		//internal virtual int Ifc2x3Record { get { return mIndex; } }
 	}
 	public class IfcMeasureWithUnit : BaseClassIfc, IfcAppliedValueSelect
 	{
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCMEASUREWITHUNIT";
 		internal IfcValue mValueComponent;// : IfcValue; 
 		private int mUnitComponent;// : IfcUnit; 
 
 		internal IfcUnit UnitComponent { get { return mDatabase.mIfcObjects[mUnitComponent] as IfcUnit; } }
 		private string mVal;
-		internal IfcMeasureWithUnit(IfcMeasureWithUnit obj) : base() { mValueComponent = obj.mValueComponent; mUnitComponent = obj.mUnitComponent; }
+		internal IfcMeasureWithUnit(IfcMeasureWithUnit m) : base() { mValueComponent = m.mValueComponent; mUnitComponent = m.mUnitComponent; }
 		internal IfcMeasureWithUnit() : base() { }
-		internal IfcMeasureWithUnit(IfcValue mv, IfcUnit u, List<int> genData) : base(u.Database) { mValueComponent = mv; mUnitComponent = u.Index; genData.Add(mIndex); }
-
-		internal IfcMeasureWithUnit(double value, IfcUnit u, List<int> genData) : base(u.Database) { mValueComponent = new IfcReal(value); mUnitComponent = u.Index; genData.Add(mIndex); }
+		internal IfcMeasureWithUnit(IfcValue v, IfcUnit u) : base(u.Database) { mValueComponent = v; mUnitComponent = u.Index; }
+		internal IfcMeasureWithUnit(double value, IfcUnit u) : base(u.Database) { mValueComponent = new IfcReal(value); mUnitComponent = u.Index;  }
 		internal static IfcMeasureWithUnit Parse(string strDef) { IfcMeasureWithUnit m = new IfcMeasureWithUnit(); int ipos = 0; parseFields(m, ParserSTEP.SplitLineFields(strDef), ref ipos); return m; }
 		internal static void parseFields(IfcMeasureWithUnit m, List<string> arrFields, ref int ipos)
 		{
@@ -869,22 +868,7 @@ namespace GGYM.IFC
 		internal IfcMechanicalFastener() : base() { }
 		internal IfcMechanicalFastener(IfcMechanicalFastener f) : base(f) { mNominalDiameter = f.mNominalDiameter; mNominalLength = f.mNominalLength; }
 		internal IfcMechanicalFastener(IfcProduct host, IfcObjectPlacement placement, IfcProductRepresentation representation) : base(host, placement, representation) { }
-		internal IfcMechanicalFastener(IfcProduct host, IfcObjectPlacement pl, IfcGeometricCurveSet cs, IfcMechanicalFastenerType t, List<int> genData)
-			: base(host,pl,null)
-		{
-			genData.Add(mIndex);
-			RelatingType = t;
-			Placement = pl;
-			IfcShapeRepresentation sr = IfcShapeRepresentation.getRowRep(host.mDatabase, cs);
-			genData.Add(sr.mIndex);
-			Representation = new IfcProductDefinitionShape(new List<IfcShapeModel>() {sr , t.mProfileRep });
-			genData.Add(Representation.mIndex);
-			if (mDatabase.mSchema == Schema.IFC2x3 && t != null)
-			{
-				mNominalDiameter = t.mNominalDiameter;
-				mNominalLength = t.mNominalLength;
-			}
-		}
+		
 		internal static IfcMechanicalFastener Parse(string strDef,Schema schema) { IfcMechanicalFastener f = new IfcMechanicalFastener(); int ipos = 0; parseFields(f, ParserSTEP.SplitLineFields(strDef), ref ipos,schema); return f; }
 		internal static void parseFields(IfcMechanicalFastener f, List<string> arrFields, ref int ipos,Schema schema)
 		{
@@ -938,8 +922,8 @@ namespace GGYM.IFC
 		internal double mThermalExpansionCoefficient;// : OPTIONAL IfcThermalExpansionCoefficientMeasure; 
 		internal IfcMechanicalMaterialProperties() : base() { }
 		internal IfcMechanicalMaterialProperties(IfcMechanicalMaterialProperties be) : base(be) { mDynamicViscosity = be.mDynamicViscosity; mYoungModulus = be.mYoungModulus; mShearModulus = be.mShearModulus; mPoissonRatio = be.mPoissonRatio; mThermalExpansionCoefficient = be.mThermalExpansionCoefficient; }
-		internal IfcMechanicalMaterialProperties(IfcMaterial mat, double dynVisc, double youngs, double shear, double poisson, double thermalExp, List<int> genData)
-			: base(mat, genData) { mDynamicViscosity = dynVisc; mYoungModulus = youngs; mShearModulus = shear; mPoissonRatio = poisson; mThermalExpansionCoefficient = thermalExp; }
+		internal IfcMechanicalMaterialProperties(IfcMaterial mat, double dynVisc, double youngs, double shear, double poisson, double thermalExp)
+			: base(mat) { mDynamicViscosity = dynVisc; mYoungModulus = youngs; mShearModulus = shear; mPoissonRatio = poisson; mThermalExpansionCoefficient = thermalExp; }
 		internal static IfcMechanicalMaterialProperties Parse(string strDef) { IfcMechanicalMaterialProperties p = new IfcMechanicalMaterialProperties(); int ipos = 0; parseFields(p, ParserSTEP.SplitLineFields(strDef), ref ipos); return p; }
 		internal static void parseFields(IfcMechanicalMaterialProperties p, List<string> arrFields, ref int ipos)
 		{
@@ -974,8 +958,8 @@ namespace GGYM.IFC
 			mPlasticStrain = p.mPlasticStrain;
 			mRelaxations = new List<int>(p.mRelaxations);
 		}
-		internal IfcMechanicalSteelMaterialProperties(IfcMaterial mat, double dynVisc, double youngs, double shear, double poisson, double thermalExp, double yieldStress, double ultimateStress, double ultimateStrain, double hardeningModule, double proportionalStress, double plasticStrain, List<int> genData)
-			: base(mat, dynVisc, youngs, shear, poisson, thermalExp, genData)
+		internal IfcMechanicalSteelMaterialProperties(IfcMaterial mat, double dynVisc, double youngs, double shear, double poisson, double thermalExp, double yieldStress, double ultimateStress, double ultimateStrain, double hardeningModule, double proportionalStress, double plasticStrain)
+			: base(mat, dynVisc, youngs, shear, poisson, thermalExp)
 		{
 			mYieldStress = yieldStress;
 			mUltimateStress = ultimateStress;
@@ -1099,11 +1083,15 @@ namespace GGYM.IFC
 		internal IfcValue mDataValueValue = null;
 		private int mReferencePath;// :	OPTIONAL IfcReference;
 
-		internal IfcMetricValueSelect DataValue { get { return mDatabase.mIfcObjects[mDataValue] as IfcMetricValueSelect; } }
-		internal IfcReference ReferencePath { get { return mDatabase.mIfcObjects[mReferencePath] as IfcReference; } }
+		public IfcBenchmarkEnum BenchMark { get { return mBenchMark; } set { mBenchMark = value; } }
+		public string ValueSource { get { return (mValueSource == "$" ? "" : ParserIfc.Decode(mValueSource)); } set { mValueSource = (string.IsNullOrEmpty(value) ? "$" : ParserIfc.Encode(value.Replace("'", ""))); } }
+		public IfcMetricValueSelect DataValue { get { return mDatabase.mIfcObjects[mDataValue] as IfcMetricValueSelect; } set { mDataValue = value.Index; } }
+		public IfcReference ReferencePath { get { return mDatabase.mIfcObjects[mReferencePath] as IfcReference; } set { mReferencePath = (value == null ? 0 : value.mIndex); } }
 
 		internal IfcMetric() : base() { }
 		internal IfcMetric(IfcMetric m) : base(m) { mBenchMark = m.mBenchMark; mValueSource = m.mValueSource; mDataValue = m.mDataValue; mDataValueValue = m.mDataValueValue; mReferencePath = m.mReferencePath; }
+		public IfcMetric(DatabaseIfc db, string name, IfcConstraintEnum constraint, IfcMetricValueSelect dataValue) : base(db, name, constraint) { DataValue = dataValue; }
+		public IfcMetric(DatabaseIfc db, string name, IfcConstraintEnum constraint, IfcValue dataValue) : base(db, name, constraint) { mDataValueValue = dataValue; }
 		
 		internal static IfcMetric Parse(string strDef, Schema schema) { IfcMetric m = new IfcMetric(); int ipos = 0; parseFields(m, ParserSTEP.SplitLineFields(strDef), ref ipos,schema); return m; }
 		internal static void parseFields(IfcMetric m, List<string> arrFields, ref int ipos, Schema schema)
@@ -1138,7 +1126,7 @@ namespace GGYM.IFC
 
 		internal IfcMonetaryUnit(IfcMonetaryUnit p) : base(p) { }
 		internal IfcMonetaryUnit() : base() { }
-		internal IfcMonetaryUnit(DatabaseIfc m, string currency, List<int> genData) : base(m) { mCurrency = currency; genData.Add(mIndex); }
+		internal IfcMonetaryUnit(DatabaseIfc m, string currency) : base(m) { mCurrency = currency; }
 		protected override string BuildString() { return base.BuildString() + (mDatabase.mSchema == Schema.IFC2x3 ? ",." + mCurrency + "." : ",'" + mCurrency + "'"); }
 		internal static void parseFields(IfcMonetaryUnit u, List<string> arrFields, ref int ipos,Schema schema) { u.mCurrency = arrFields[ipos++].Replace(schema == Schema.IFC2x3 ? "." : "'", ""); }
 		internal static IfcMonetaryUnit Parse(string strDef,Schema schema) { IfcMonetaryUnit u = new IfcMonetaryUnit(); int ipos = 0; parseFields(u, ParserSTEP.SplitLineFields(strDef), ref ipos,schema); return u; }

@@ -24,9 +24,9 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public class IfcValve : IfcFlowController //IFC4
 	{
@@ -211,7 +211,7 @@ namespace GGYM.IFC
 		
 		internal IfcVoidingFeature() : base() { }
 		internal IfcVoidingFeature(IfcVoidingFeature od) : base(od) { mPredefinedType = od.mPredefinedType; }
-		internal IfcVoidingFeature(IfcProduct host, IfcObjectPlacement placement, IfcProductRepresentation rep) : base(host, placement,rep) { }
+		public IfcVoidingFeature(IfcElement host,IfcProductRepresentation rep,IfcVoidingFeatureTypeEnum type) : base(host,rep) { mPredefinedType = type; }
 		
 		internal static IfcVoidingFeature Parse(string strDef, Schema schema) { IfcVoidingFeature e = new IfcVoidingFeature(); int ipos = 0; parseFields(e, ParserSTEP.SplitLineFields(strDef), ref ipos,schema); return e; }
 		internal static void parseFields(IfcVoidingFeature e, List<string> arrFields, ref int ipos, Schema schema)

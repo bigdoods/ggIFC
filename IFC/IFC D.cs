@@ -24,9 +24,9 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public class IfcDamper : IfcFlowController //IFC4
 	{
@@ -71,7 +71,7 @@ namespace GGYM.IFC
 		internal static string convert(DateTime date) { return "'" + date.Year + (date.Month < 10 ? "-0" : "-") + date.Month + (date.Day < 10 ? "-0" : "-") + date.Day + "'"; }
 		internal static DateTime convert(string date) { return new DateTime(int.Parse(date.Substring(0, 4)), int.Parse(date.Substring(5, 2)), int.Parse(date.Substring(8, 2))); }
 	}
-	internal class IfcDateAndTime : BaseClassIfc, IfcDateTimeSelect // DEPRECEATED IFC4
+	public class IfcDateAndTime : BaseClassIfc, IfcDateTimeSelect // DEPRECEATED IFC4
 	{
 		public override string KeyWord { get { return mKW; } }
 		internal new static string mKW = "IFCDATEANDTIME";
@@ -79,7 +79,7 @@ namespace GGYM.IFC
 		internal int mTimeComponent;// : IfcLocalTime;
 		internal IfcDateAndTime(IfcDateAndTime v) : base() { mDateComponent = v.mDateComponent; mTimeComponent = v.mTimeComponent; }
 		internal IfcDateAndTime() : base() { }
-		internal IfcDateAndTime(DatabaseIfc m, IfcCalendarDate d, IfcLocalTime t, List<int> genData) : base(m) { mDateComponent = d.mIndex; mTimeComponent = t.mIndex; genData.Add(mIndex); }
+		internal IfcDateAndTime(IfcCalendarDate d, IfcLocalTime t) : base(d.mDatabase) { mDateComponent = d.mIndex; mTimeComponent = t.mIndex; }
 		internal static void parseFields(IfcDateAndTime d, List<string> arrFields, ref int ipos) { d.mDateComponent = ParserSTEP.ParseLink(arrFields[ipos++]); d.mTimeComponent = ParserSTEP.ParseLink(arrFields[ipos++]); }
 		internal static IfcDateAndTime Parse(string strDef) { IfcDateAndTime d = new IfcDateAndTime(); int ipos = 0; parseFields(d, ParserSTEP.SplitLineFields(strDef), ref ipos); return d; }
 		protected override string BuildString() { return base.BuildString() + "," + ParserSTEP.LinkToString(mDateComponent) + "," + ParserSTEP.LinkToString(mTimeComponent); }
@@ -93,7 +93,7 @@ namespace GGYM.IFC
 			}
 		}
 	}
-	public class IfcDateTime
+	public partial class IfcDateTime
 	{
 		internal string mDateTime = "$";
 		//	internal IfcDateTime(DateTime datetime) { mDateTime = Convert(datetime); }
@@ -117,39 +117,35 @@ namespace GGYM.IFC
 			catch (Exception) { }
 			DateTime result = DateTime.MinValue;
 			return (DateTime.TryParse(value, out result) ? result : DateTime.MinValue);
-
-
 		}
-		internal static IfcDateTimeSelect convertDateTimeSelect(DatabaseIfc m, DateTime date, List<int> genData)
+	
+		internal static IfcDateTimeSelect convertDateTimeSelect(DatabaseIfc m, DateTime date)
 		{
-			IfcCalendarDate cd = new IfcCalendarDate(m, date.Day, date.Month, date.Year, genData);
+			IfcCalendarDate cd = new IfcCalendarDate(m, date.Day, date.Month, date.Year);
 			if (date.Hour + date.Minute + date.Second < m.Tolerance)
 				return cd;
-			return new IfcDateAndTime(m, cd, new IfcLocalTime(m, date.Hour, date.Minute, date.Second, null, 0, genData), genData);
+			return new IfcDateAndTime(cd, new IfcLocalTime(m, date.Hour, date.Minute, date.Second));
 		}
 	}
 	internal interface IfcDateTimeSelect : IfcInterface { DateTime DateTime { get; } } // IFC4 IfcCalenderDate, IfcDateAndTime, IfcLocalTime removed.  Date, IfcDateTime, IfcDescriptiveDate, IfcTime added
 	//ENTITY IfcDefinedSymbol  // DEPRECEATED IFC4
 	public interface IfcDefinitionSelect : IfcInterface { IfcRelDeclares HasContext { get; set; } List<IfcRelAssociates> HasAssociations { get; } DatabaseIfc Model { get; } } // IFC4 SELECT ( IfcObjectDefinition,  IfcPropertyDefinition);
-	public class IfcDerivedUnit : BaseClassIfc, IfcUnit
+	public partial class IfcDerivedUnit : BaseClassIfc, IfcUnit
 	{
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCDERIVEDUNIT";
-
 		private List<int> mElements = new List<int>();// : SET [1:?] OF IfcDerivedUnitElement;
 		private IfcDerivedUnitEnum mUnitType;// : IfcDerivedUnitEnum;
 		private string mUserDefinedType = "$";// : OPTIONAL IfcLabel;
 
-		internal List<IfcDerivedUnitElement> Elements { get { return mElements.ConvertAll(x => mDatabase.mIfcObjects[x] as IfcDerivedUnitElement); } }
-		internal IfcDerivedUnitEnum UnitType { get { return mUnitType; } }
+		public List<IfcDerivedUnitElement> Elements { get { return mElements.ConvertAll(x => mDatabase.mIfcObjects[x] as IfcDerivedUnitElement); } }
+		public IfcDerivedUnitEnum UnitType { get { return mUnitType; } set { mUnitType = value; } }
 		//internal string UserDefinedType { get { } }
 
 		internal IfcDerivedUnit(IfcDerivedUnit v) : base() { mElements = new List<int>(v.mElements.ToArray()); mUnitType = v.mUnitType; mUserDefinedType = v.mUserDefinedType; }
 		internal IfcDerivedUnit() : base() { }
-		internal IfcDerivedUnit(IfcDerivedUnitElement element, IfcDerivedUnitEnum type, List<int> genData) : base(element.mDatabase) { mElements.Add(element.mIndex); mUnitType = type; genData.Add(mIndex); }
-		internal IfcDerivedUnit(List<IfcDerivedUnitElement> elements, IfcDerivedUnitEnum type, List<int> genData) : base(elements[0].mDatabase) { mElements = elements.ConvertAll(x => x.mIndex); mUnitType = type; genData.Add(mIndex); }
-		internal IfcDerivedUnit(IfcDerivedUnitElement due1, IfcDerivedUnitElement due2, IfcDerivedUnitEnum type, List<int> genData) : base(due1.mDatabase) { mElements.Add(due1.mIndex); mElements.Add(due2.mIndex); mUnitType = type; genData.Add(mIndex); }
-		internal IfcDerivedUnit(IfcDerivedUnitElement due1, IfcDerivedUnitElement due2, IfcDerivedUnitElement due3, IfcDerivedUnitEnum type, List<int> genData) : base(due1.mDatabase) { mElements.Add(due1.mIndex); mElements.Add(due2.mIndex); mElements.Add(due3.mIndex); mUnitType = type; genData.Add(mIndex); }
+		internal IfcDerivedUnit(IfcDerivedUnitElement element, IfcDerivedUnitEnum type) : base(element.mDatabase) { mElements.Add(element.mIndex); mUnitType = type;  }
+		internal IfcDerivedUnit(List<IfcDerivedUnitElement> elements, IfcDerivedUnitEnum type) : base(elements[0].mDatabase) { mElements = elements.ConvertAll(x => x.mIndex); mUnitType = type; }
+		internal IfcDerivedUnit(IfcDerivedUnitElement due1, IfcDerivedUnitElement due2, IfcDerivedUnitEnum type) : base(due1.mDatabase) { mElements.Add(due1.mIndex); mElements.Add(due2.mIndex); mUnitType = type;  }
+		internal IfcDerivedUnit(IfcDerivedUnitElement due1, IfcDerivedUnitElement due2, IfcDerivedUnitElement due3, IfcDerivedUnitEnum type) : base(due1.mDatabase) { mElements.Add(due1.mIndex); mElements.Add(due2.mIndex); mElements.Add(due3.mIndex); mUnitType = type;  }
 		internal static void parseFields(IfcDerivedUnit u, List<string> arrFields, ref int ipos) { u.mElements = ParserSTEP.SplitListLinks(arrFields[ipos++]); u.mUnitType = (IfcDerivedUnitEnum)Enum.Parse(typeof(IfcDerivedUnitEnum), arrFields[ipos++].Replace(".", "")); u.mUserDefinedType = arrFields[ipos++]; }
 		internal static IfcDerivedUnit Parse(string strDef) { IfcDerivedUnit u = new IfcDerivedUnit(); int ipos = 0; parseFields(u, ParserSTEP.SplitLineFields(strDef), ref ipos); return u; }
 		protected override string BuildString()
@@ -168,11 +164,8 @@ namespace GGYM.IFC
 			return result;
 		}
 	}
-	public class IfcDerivedUnitElement : BaseClassIfc
+	public partial class IfcDerivedUnitElement : BaseClassIfc
 	{
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCDERIVEDUNITELEMENT";
-
 		private int mUnit;// : IfcNamedUnit;
 		private int mExponent;// : INTEGER;
 
@@ -181,7 +174,7 @@ namespace GGYM.IFC
 
 		internal IfcDerivedUnitElement(IfcDerivedUnitElement v) : base() { mUnit = v.mUnit; mExponent = v.mExponent; }
 		internal IfcDerivedUnitElement() : base() { }
-		internal IfcDerivedUnitElement(IfcNamedUnit u, int exponent, List<int> genData) : base(u.mDatabase) { mUnit = u.mIndex; mExponent = exponent; genData.Add(mIndex); }
+		public IfcDerivedUnitElement(IfcNamedUnit u, int exponent) : base(u.mDatabase) { mUnit = u.mIndex; mExponent = exponent; }
 		internal static void parseFields(IfcDerivedUnitElement e, List<string> arrFields, ref int ipos) { e.mUnit = ParserSTEP.ParseLink(arrFields[ipos++]); e.mExponent = ParserSTEP.ParseInt(arrFields[ipos++]); }
 		internal static IfcDerivedUnitElement Parse(string strDef) { IfcDerivedUnitElement e = new IfcDerivedUnitElement(); int ipos = 0; parseFields(e, ParserSTEP.SplitLineFields(strDef), ref ipos); return e; }
 		protected override string BuildString() { return base.BuildString() + "," + ParserSTEP.LinkToString(mUnit) + "," + ParserSTEP.IntToString(mExponent); }
@@ -216,8 +209,6 @@ namespace GGYM.IFC
 	}
 	public class IfcDimensionalExponents : BaseClassIfc
 	{
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCDIMENSIONALEXPONENTS";
 		internal int mLengthExponent;// : INTEGER;
 		internal int mMassExponent;// : INTEGER;
 		internal int mTimeExponent;// : INTEGER;
@@ -226,19 +217,17 @@ namespace GGYM.IFC
 		internal int mAmountOfSubstanceExponent;// : INTEGER;
 		internal int mLuminousIntensityExponent;// : INTEGER;
 		internal IfcDimensionalExponents() : base() { }
-		internal IfcDimensionalExponents(IfcDimensionalExponents v)
-			: base()
+		internal IfcDimensionalExponents(IfcDimensionalExponents e) : base()
 		{
-			mLengthExponent = v.mLengthExponent;
-			mMassExponent = v.mMassExponent;
-			mTimeExponent = v.mTimeExponent;
-			mElectricCurrentExponent = v.mElectricCurrentExponent;
-			mThermodynamicTemperatureExponent = v.mThermodynamicTemperatureExponent;
-			mAmountOfSubstanceExponent = v.mAmountOfSubstanceExponent;
-			mLuminousIntensityExponent = v.mLuminousIntensityExponent;
+			mLengthExponent = e.mLengthExponent;
+			mMassExponent = e.mMassExponent;
+			mTimeExponent = e.mTimeExponent;
+			mElectricCurrentExponent = e.mElectricCurrentExponent;
+			mThermodynamicTemperatureExponent = e.mThermodynamicTemperatureExponent;
+			mAmountOfSubstanceExponent = e.mAmountOfSubstanceExponent;
+			mLuminousIntensityExponent = e.mLuminousIntensityExponent;
 		}
-		internal IfcDimensionalExponents(DatabaseIfc m, int len, int mass, int time, int elecCurr, int themrmo, int amountSubs, int luminous, List<int> genData)
-			: base(m)
+		internal IfcDimensionalExponents(DatabaseIfc m, int len, int mass, int time, int elecCurr, int themrmo, int amountSubs, int luminous) : base(m)
 		{
 			mLengthExponent = len;
 			mMassExponent = mass;
@@ -247,7 +236,6 @@ namespace GGYM.IFC
 			mThermodynamicTemperatureExponent = themrmo;
 			mAmountOfSubstanceExponent = amountSubs;
 			mLuminousIntensityExponent = luminous;
-			genData.Add(mIndex);
 		}
 		internal static void parseFields(IfcDimensionalExponents e, List<string> arrFields, ref int ipos)
 		{
@@ -441,14 +429,12 @@ namespace GGYM.IFC
 	}
 	public class IfcDistributionCircuit : IfcDistributionSystem
 	{
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCDISTRIBUTIONCIRCUIT";
 		internal IfcDistributionCircuit() : base() { }
 		internal IfcDistributionCircuit(IfcDistributionCircuit i) : base(i) { }
-		internal IfcDistributionCircuit(IfcSpatialElement bldg, string name, string longname, IfcDistributionSystemEnum type, List<int> genData) : base(bldg, name, longname, type, genData) { }
+		internal IfcDistributionCircuit(IfcSpatialElement bldg, string name,IfcDistributionSystemEnum type) : base(bldg, name, type) { }
 		internal new static IfcDistributionCircuit Parse(string strDef) { IfcDistributionCircuit m = new IfcDistributionCircuit(); int ipos = 0; parseFields(m, ParserSTEP.SplitLineFields(strDef), ref ipos); return m; }
 		internal static void parseFields(IfcDistributionCircuit c, List<string> arrFields, ref int ipos) { IfcDistributionSystem.parseFields(c, arrFields, ref ipos); }
-	}
+	} 
 	public class IfcDistributionControlElement : IfcDistributionElement // SUPERTYPE OF(ONEOF(IfcActuator, IfcAlarm, IfcController,
 	{ // IfcFlowInstrument, IfcProtectiveDeviceTrippingUnit, IfcSensor, IfcUnitaryControlElement)) //"IFCDISTRIBUTIONCONTROLELEMENT"
 		public override string KeyWord { get { return mDatabase.mSchema == Schema.IFC2x3 ? "IFCDISTRIBUTIONCONTROLELEMENT" : base.KeyWord; } }
@@ -470,7 +456,6 @@ namespace GGYM.IFC
 		protected IfcDistributionControlElementType(IfcDistributionControlElementType t) : base(t) { }
 		protected IfcDistributionControlElementType(DatabaseIfc m) : base(m) { }
 		protected static void parseFields(IfcDistributionControlElementType t, List<string> arrFields, ref int ipos) { IfcDistributionElementType.parseFields(t, arrFields, ref ipos); }
-		//internal override IfcElement genMappedItemElement(DatabaseIfc m, Plane pln, ElementParams p, IfcProduct container, IfcDistributionSystem system, List<int> genData, out IfcRepresentationItem i) { return new IfcDistributionControlElement(m, p, this, i = new IfcMappedItem(m, RepresentationMaps[0], new IfcCartesianTransformationOperator3D(m, pln, genData), genData), container,system, genData); }
 	}
 	public partial class IfcDistributionElement : IfcElement //SUPERTYPE OF (ONEOF (IfcDistributionControlElement ,IfcDistributionFlowElement))
 	{
@@ -498,15 +483,15 @@ namespace GGYM.IFC
 			return null;
 		}
 	}
-	public class IfcDistributionElementType : IfcElementType
+	public partial class IfcDistributionElementType : IfcElementType //SUPERTYPE OF(ONEOF(IfcDistributionControlElementType, IfcDistributionFlowElementType))
 	{
 		internal IfcDistributionElementType() : base() { }
 		protected IfcDistributionElementType(IfcDistributionElementType t) : base(t) { }
 		protected IfcDistributionElementType(DatabaseIfc m) : base(m) { }
 		internal static void parseFields(IfcDistributionElementType t, List<string> arrFields, ref int ipos) { IfcElementType.parseFields(t, arrFields, ref ipos); }
 		internal new static IfcDistributionElementType Parse(string strDef) { IfcDistributionElementType t = new IfcDistributionElementType(); int ipos = 0; parseFields(t, ParserSTEP.SplitLineFields(strDef), ref ipos); return t; }
-		internal virtual IfcDistributionElement genElement(IfcDistributionPort p1, IfcDistributionPort p2, IfcDistributionSystem system, List<int> genData) { return null; }
 	}
+	
 	public partial class IfcDistributionFlowElement : IfcDistributionElement //SUPERTYPE OF (ONEOF (IfcDistributionChamberElement ,IfcEnergyConversionDevice ,
 	{ 	//IfcFlowController ,IfcFlowFitting ,IfcFlowMovingDevice,IfcFlowSegment ,IfcFlowStorageDevice ,IfcFlowTerminal ,IfcFlowTreatmentDevice))
 		internal new enum SubTypes { IfcDistributionChamberElement, IfcEnergyConversionDevice, IfcFlowController, IfcFlowFitting, IfcFlowMovingDevice, IfcFlowSegment, IfcFlowStorageDevice, IfcFlowTerminal, IfcFlowTreatmentDevice }
@@ -533,13 +518,19 @@ namespace GGYM.IFC
 	}
 	public partial class IfcDistributionPort : IfcPort
 	{
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCDISTRIBUTIONPORT";
-		internal IfcFlowDirectionEnum mFlowDirection = IfcFlowDirectionEnum.NOTDEFINED;
+		internal IfcFlowDirectionEnum mFlowDirection = IfcFlowDirectionEnum.NOTDEFINED; //:	OPTIONAL IfcFlowDirectionEnum;
 		internal IfcDistributionPortTypeEnum mPredefinedType = IfcDistributionPortTypeEnum.NOTDEFINED; // IFC4 : OPTIONAL IfcDistributionPortTypeEnum;
 		internal IfcDistributionSystemEnum mSystemType = IfcDistributionSystemEnum.NOTDEFINED;// IFC4 : OPTIONAL IfcDistributionSystemEnum;
+
+		public IfcFlowDirectionEnum FlowDirection { get { return mFlowDirection; } set { mFlowDirection = value; } }
+		public IfcDistributionPortTypeEnum PredefinedType { get { return mPredefinedType; } set { mPredefinedType = value; } }
+		public IfcDistributionSystemEnum SystemType { get { return mSystemType; } set { mSystemType = value; } }
+
 		internal IfcDistributionPort() : base() { }
-		internal IfcDistributionPort(IfcDistributionPort b) : base(b) { mFlowDirection = b.mFlowDirection; }
+		internal IfcDistributionPort(IfcDistributionPort p) : base(p) { mFlowDirection = p.mFlowDirection; mPredefinedType = p.mPredefinedType; mSystemType = p.mSystemType; }
+		public IfcDistributionPort(IfcElement host) : base(host) { }
+		public IfcDistributionPort(IfcElementType host) : base(host) { }
+		public IfcDistributionPort(DatabaseIfc db) : base(db) { }
 		internal static void parseFields(IfcDistributionPort p, List<string> arrFields, ref int ipos, Schema schema)
 		{
 			IfcPort.parseFields(p, arrFields, ref ipos);
@@ -556,25 +547,46 @@ namespace GGYM.IFC
 		}
 		internal static IfcDistributionPort Parse(string strDef, Schema schema) { IfcDistributionPort p = new IfcDistributionPort(); int ipos = 0; parseFields(p, ParserSTEP.SplitLineFields(strDef), ref ipos, schema); return p; }
 		protected override string BuildString() { return base.BuildString() + ",." + mFlowDirection.ToString() + (mDatabase.mSchema == Schema.IFC2x3 ? "." : ".,." + mPredefinedType + ".,." + mSystemType + "."); }
-	}
-	public class IfcDistributionConduit : IfcDistributionSystem //IFC4
-	{
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCDISTRIBUTIONCONDUIT";
-		internal IfcDistributionConduit() : base() { }
-		internal IfcDistributionConduit(IfcDistributionConduit i) : base(i) { }
-		internal IfcDistributionConduit(IfcSpatialElement bldg, string name, string longname, IfcDistributionSystemEnum type, List<int> genData) : base(bldg, name, longname, type, genData) { }
-		internal new static IfcDistributionConduit Parse(string strDef) { IfcDistributionConduit m = new IfcDistributionConduit(); int ipos = 0; parseFields(m, ParserSTEP.SplitLineFields(strDef), ref ipos); return m; }
+
+		public class Pset_DistributionPortTypeDuct : IfcPropertySet
+		{
+
+			public PEnum_DuctConnectionType ConnectionType { set { mHasProperties.Add(new IfcPropertySingleValue(mDatabase, "ConnectionType", new IfcLabel(value.ToString())).mIndex); } }
+			public double NominalWidth { set { mHasProperties.Add(new IfcPropertySingleValue(mDatabase, "NominalWidth", new IfcPositiveLengthMeasure(value)).mIndex); } }
+			public double NominalHeight { set { mHasProperties.Add(new IfcPropertySingleValue(mDatabase, "NominalHeight", new IfcPositiveLengthMeasure(value)).mIndex); } }
+			//if (!string.IsNullOrEmpty(connectionSubType))
+			//	props.Add(new IfcPropertySingleValue(mDatabase, Pset_DistributionPortTypeDuct.mConnectionSubTypeLabel, "", new IfcLabel(connectionSubType)));
+			//if (nominalWidth > tol)
+			//	props.Add(new IfcPropertySingleValue(mDatabase, Pset_DistributionPortTypeDuct.mNominalWidthLabel, "", new IfcPositiveLengthMeasure(nominalWidth)));
+			//if (nominalHeight > tol)
+			//	props.Add(new IfcPropertySingleValue(mDatabase, Pset_DistributionPortTypeDuct.mNominalHeightLabel, "", new IfcPositiveLengthMeasure(nominalHeight)));
+			//if (Math.Abs(dryBulbTemperature) > tol)
+			//	props.Add(new IfcPropertySingleValue(mDatabase, Pset_DistributionPortTypeDuct.mDryBulbTemperatureLabel, "", new IfcThermodynamicTemperatureMeasure(dryBulbTemperature)));
+			//if (Math.Abs(wetBulbTemperature) > tol)
+			//	props.Add(new IfcPropertySingleValue(mDatabase, Pset_DistributionPortTypeDuct.mWetBulbTemperatureLabel, "", new IfcThermodynamicTemperatureMeasure(wetBulbTemperature)));
+			//if (volumetricFlowRate > tol)
+			//	props.Add(new IfcPropertySingleValue(mDatabase, Pset_DistributionPortTypeDuct.mVolumetricFlowRateLabel, "", new IfcVolumetricFlowRateMeasure(volumetricFlowRate)));
+			//if (velocity > tol)
+			//	props.Add(new IfcPropertySingleValue(mDatabase, Pset_DistributionPortTypeDuct.mVelocityLabel, "", new IfcLinearVelocityMeasure(velocity)));
+			//if (pressure > tol)
+			//	props.Add(new IfcPropertySingleValue(mDatabase, Pset_DistributionPortTypeDuct.mPressureLabel, "", new IfcPressureMeasure(pressure)));
+
+
+			public Pset_DistributionPortTypeDuct(DatabaseIfc db) : base(db, "Pset_DistributionPortTypeDuct") { }
+
+		}
 	}
 	public partial class IfcDistributionSystem : IfcSystem //SUPERTYPE OF(IfcDistributionCircuit) IFC4
 	{
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCDISTRIBUTIONSYSTEM";
 		internal string mLongName = "$"; // 	OPTIONAL IfcLabel
 		internal IfcDistributionSystemEnum mPredefinedType = IfcDistributionSystemEnum.NOTDEFINED;// : OPTIONAL IfcDistributionSystemEnum
+
+		public string LongName { get { return (mLongName == "$" ? "" : ParserIfc.Decode(mLongName)); } set { mLongName = (string.IsNullOrEmpty(value) ? "" : ParserIfc.Encode(value.Replace("'", ""))); } }
+		public IfcDistributionSystemEnum PredefinedType { get { return mPredefinedType; } set { mPredefinedType = value; } }
+
 		internal IfcDistributionSystem() : base() { }
 		internal IfcDistributionSystem(IfcDistributionSystem i) : base(i) { mLongName = i.mLongName; mPredefinedType = i.mPredefinedType; }
-		internal IfcDistributionSystem(IfcSpatialElement bldg, string name, string longname, IfcDistributionSystemEnum type, List<int> genData) : base(bldg, name, genData) { if (!string.IsNullOrEmpty(longname)) mLongName = longname.Replace("'", ""); mPredefinedType = type; }
+		internal IfcDistributionSystem(IfcSpatialElement bldg, string name, IfcDistributionSystemEnum type) : base(bldg, name) { mPredefinedType = type; }
 		internal new static IfcDistributionSystem Parse(string strDef) { IfcDistributionSystem m = new IfcDistributionSystem(); int ipos = 0; parseFields(m, ParserSTEP.SplitLineFields(strDef), ref ipos); return m; }
 		internal static void parseFields(IfcDistributionSystem c, List<string> arrFields, ref int ipos)
 		{
@@ -586,7 +598,7 @@ namespace GGYM.IFC
 		}
 		protected override string BuildString() { return mDatabase.mSchema == Schema.IFC2x3 ? "" : base.BuildString() + (mDatabase.mSchema == Schema.IFC2x3 ? "" : (mLongName == "$" ? ",$,." : ",'" + mLongName + "',.") + mPredefinedType.ToString() + "."); }
 	}
-	internal class IfcDocumentElectronicFormat : BaseClassIfc // DEPRECEATED IFC4
+	public class IfcDocumentElectronicFormat : BaseClassIfc // DEPRECEATED IFC4
 	{
 		public override string KeyWord { get { return mKW; } }
 		internal new static string mKW = "IFCDOCUMENTELECTRONICFORMAT";
@@ -595,12 +607,12 @@ namespace GGYM.IFC
 		internal string mMimeSubtype = "$";//  OPTIONAL IfcLabel;
 		internal IfcDocumentElectronicFormat() : base() { }
 		internal IfcDocumentElectronicFormat(IfcDocumentElectronicFormat i) : base() { mFileExtension = i.mFileExtension; mMimeContentType = i.mMimeContentType; mMimeSubtype = i.mMimeSubtype; }
-		//internal IfcDocumentElectronicFormat(DatabaseIfc m, List<int> genData) : base(m, genData) { }
+
 		internal static IfcDocumentElectronicFormat Parse(string strDef) { IfcDocumentElectronicFormat d = new IfcDocumentElectronicFormat(); int ipos = 0; parseFields(d, ParserSTEP.SplitLineFields(strDef), ref ipos); return d; }
 		internal static void parseFields(IfcDocumentElectronicFormat d, List<string> arrFields, ref int ipos) { d.mFileExtension = arrFields[ipos++]; d.mMimeContentType = arrFields[ipos++]; d.mMimeSubtype = arrFields[ipos++]; }
 		protected override string BuildString() { return base.BuildString() + "," + mFileExtension + "," + mMimeContentType + "," + mMimeSubtype; }
 	}
-	public class IfcDocumentInformation : IfcExternalInformation, IfcDocumentSelect
+	public partial class IfcDocumentInformation : IfcExternalInformation, IfcDocumentSelect
 	{
 		internal string mIdentification = "";// : IfcIdentifier;
 		internal string mName;// :  IfcLabel;
@@ -646,45 +658,6 @@ namespace GGYM.IFC
 			mValidUntil = i.mValidUntil;
 			mConfidentiality = i.mConfidentiality;
 			mStatus = i.mStatus;
-		}
-		public IfcDocumentInformation(DatabaseIfc m, string id, string name, string desc, string location, string purpose, string use, string scope, string revision, IfcActorSelect owner,
-			List<IfcActorSelect> editors, IfcDateTime creation, IfcDateTime lastRevision, string elecFormat, IfcDate validfrom, IfcDate validto, IfcDocumentConfidentialityEnum conf, IfcDocumentStatusEnum status)
-			: this(m, id, name, desc, location, purpose, use, scope, revision, owner, editors, creation, lastRevision, elecFormat, validfrom, validto, conf, status, new List<int>()) { }
-		internal IfcDocumentInformation(DatabaseIfc m, string id, string name, string desc, string location, string purpose, string use, string scope, string revision, IfcActorSelect owner,
-			List<IfcActorSelect> editors, IfcDateTime creation, IfcDateTime lastRevision, string elecFormat, IfcDate validfrom, IfcDate validto, IfcDocumentConfidentialityEnum conf, IfcDocumentStatusEnum status, List<int> genData)
-			: base(m)
-		{
-			mIdentification = id.Replace("'", "");
-			mName = name.Replace("'", "");
-			if (!string.IsNullOrEmpty(desc))
-				mDescription = desc.Replace("'", "");
-			if (!string.IsNullOrEmpty(location))
-				mLocation = location.Replace("'", "");
-			if (!string.IsNullOrEmpty(purpose))
-				mPurpose = purpose.Replace("'", "");
-			if (!string.IsNullOrEmpty(use))
-				mIntendedUse = use.Replace("'", "");
-			if (!string.IsNullOrEmpty(scope))
-				mScope = scope.Replace("'", "");
-			if (!string.IsNullOrEmpty(revision))
-				mRevision = revision.Replace("'", "");
-			if (owner != null)
-				mDocumentOwner = owner.Index;
-			if (editors != null && editors.Count > 0)
-				mEditors.AddRange(editors.ConvertAll(x => x.Index));
-			if (creation != null)
-				mCreationTime = creation.ToString();
-			if (lastRevision != null)
-				mLastRevisionTime = lastRevision.ToString();
-			if (!string.IsNullOrEmpty(elecFormat))
-				mElectronicFormat = elecFormat.Replace("'", "");
-			if (validfrom != null)
-				mValidFrom = validfrom.ToString();
-			if (validto != null)
-				mValidUntil = validto.ToString();
-			mConfidentiality = conf;
-			mStatus = status;
-			genData.Add(mIndex);
 		}
 		protected override string BuildString()
 		{
@@ -842,7 +815,7 @@ namespace GGYM.IFC
 				+ (mDatabase.mSchema == Schema.IFC2x3 ? "" : ",." + mPredefinedType.ToString() + ".,." + mOperationType.ToString() + (mUserDefinedOperationType == "$" ? ".,$" : ".,'" + mUserDefinedOperationType + "'"));
 		}
 	}
-	internal class IfcDoorLiningProperties : IfcPreDefinedPropertySet // IFC2x3 IfcPropertySetDefinition
+	public partial class IfcDoorLiningProperties : IfcPreDefinedPropertySet // IFC2x3 IfcPropertySetDefinition
 	{
 		public override string KeyWord { get { return mKW; } }
 		internal new static string mKW = "IFCDOORLININGPROPERTIES";
@@ -868,23 +841,6 @@ namespace GGYM.IFC
 			mShapeAspectStyle = p.mShapeAspectStyle;
 			mLiningToPanelOffsetX = p.mLiningToPanelOffsetX;
 			mLiningToPanelOffsetY = p.mLiningToPanelOffsetY;
-		}
-		internal IfcDoorLiningProperties(DatabaseIfc m, string name, double lnngDpth, double lnngThck, double thresDpth, double thresThck, double trnsmThck, double trnsmOff,
-			double lnngOff, double thresOff, double casThck, double casDpth, double lngToPnlOffstX, double lngToPnlOffstY, List<int> genData)
-			: base(m, name, genData)
-		{
-			mLiningDepth = lnngDpth;
-			mLiningThickness = lnngThck;
-			mThresholdDepth = thresDpth;
-			mThresholdThickness = thresThck;
-			mTransomThickness = trnsmThck;
-			mTransomOffset = trnsmOff;
-			mLiningOffset = lnngOff;
-			mThresholdOffset = thresOff;
-			mCasingThickness = casThck;
-			mCasingDepth = casDpth;
-			mLiningToPanelOffsetX = lngToPnlOffstX;
-			mLiningToPanelOffsetY = lngToPnlOffstY;
 		}
 		internal static IfcDoorLiningProperties Parse(string strDef, Schema schema) { IfcDoorLiningProperties p = new IfcDoorLiningProperties(); int ipos = 0; parseFields(p, ParserSTEP.SplitLineFields(strDef), ref ipos,schema); return p; }
 		internal static void parseFields(IfcDoorLiningProperties p, List<string> arrFields, ref int ipos,Schema schema)
@@ -913,7 +869,7 @@ namespace GGYM.IFC
 				ParserSTEP.DoubleOptionalToString(mThresholdOffset) + "," + ParserSTEP.DoubleOptionalToString(mCasingThickness) + "," + ParserSTEP.DoubleOptionalToString(mCasingDepth) + "," + ParserSTEP.LinkToString(mShapeAspectStyle) + (mDatabase.mSchema == Schema.IFC2x3 ? "" : "," + ParserSTEP.DoubleOptionalToString(mLiningToPanelOffsetX) + "," + ParserSTEP.DoubleOptionalToString(mLiningToPanelOffsetY));
 		}
 	}
-	internal class IfcDoorPanelProperties : IfcPreDefinedPropertySet //IFC2x3 IfcPropertySetDefinition
+	public partial class IfcDoorPanelProperties : IfcPreDefinedPropertySet //IFC2x3 IfcPropertySetDefinition
 	{
 		public override string KeyWord { get { return mKW; } }
 		internal new static string mKW = "IFCDOORPANELPROPERTIES";
@@ -923,8 +879,7 @@ namespace GGYM.IFC
 		internal IfcDoorPanelPositionEnum mPanelPosition;// :IfcDoorPanelPositionEnume;
 		private int mShapeAspectStyle;// : OPTIONAL IfcShapeAspect;  // DEPRECEATED IFC4
 		internal IfcDoorPanelProperties() : base() { }
-		internal IfcDoorPanelProperties(IfcDoorPanelProperties p)
-			: base(p)
+		internal IfcDoorPanelProperties(IfcDoorPanelProperties p) : base(p)
 		{
 			mPanelDepth = p.mPanelDepth;
 			mOperationType = p.mOperationType;
@@ -932,8 +887,6 @@ namespace GGYM.IFC
 			mPanelPosition = p.mPanelPosition;
 			mShapeAspectStyle = p.mShapeAspectStyle;
 		}
-		internal IfcDoorPanelProperties(DatabaseIfc m, string name, double depth, IfcDoorPanelOperationEnum op, double width, IfcDoorPanelPositionEnum pos, List<int> genData)
-			: base(m, name, genData) { mPanelDepth = depth; mOperationType = op; mPanelWidth = width; mPanelPosition = pos; }
 		internal static IfcDoorPanelProperties Parse(string strDef) { IfcDoorPanelProperties p = new IfcDoorPanelProperties(); int ipos = 0; parseFields(p, ParserSTEP.SplitLineFields(strDef), ref ipos); return p; }
 		internal static void parseFields(IfcDoorPanelProperties p, List<string> arrFields, ref int ipos)
 		{

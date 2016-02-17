@@ -24,9 +24,9 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public partial class IfcImageTexture : IfcSurfaceTexture
 	{
@@ -60,10 +60,8 @@ namespace GGYM.IFC
 
 		internal IfcIndexedColourMap() : base() { }
 		internal IfcIndexedColourMap(IfcIndexedColourMap v) : base(v) { mMappedTo = v.mMappedTo; mColours = v.mColours; }
-		public IfcIndexedColourMap(DatabaseIfc m, IfcTessellatedFaceSet fs, IfcColourRgbList colours, IEnumerable<int> colourindex)
-			: this(m, fs, colours, colourindex, new List<int>()) { }
-		internal IfcIndexedColourMap(DatabaseIfc m, IfcTessellatedFaceSet fs, IfcColourRgbList colours, IEnumerable<int> colourindex, List<int> genData)
-			: base(m) { mMappedTo = fs.mIndex; mColours = colours.mIndex; mColourIndex.AddRange(colourindex); genData.Add(mIndex); }
+		public IfcIndexedColourMap(IfcTessellatedFaceSet fs, IfcColourRgbList colours, IEnumerable<int> colourindex)
+			: base(fs.mDatabase) { mMappedTo = fs.mIndex; mColours = colours.mIndex; mColourIndex.AddRange(colourindex); }
 		protected override void parseFields(List<string> arrFields, ref int ipos)
 		{
 			base.parseFields(arrFields, ref ipos);
@@ -247,7 +245,7 @@ namespace GGYM.IFC
 	}
 	//ENTITY IfcIrregularTimeSeries
 	//ENTITY IfcIrregularTimeSeriesValue;ductFittingTypeEnum;
-	public partial class IfcIShapeProfileDef : IfcParameterizedProfileDef
+	public partial class IfcIShapeProfileDef : IfcParameterizedProfileDef //Ifc2x3 SUBTYPE OF (	IfcParameterizedProfileDef);
 	{
 		public override string KeyWord { get { return mKW; } }
 		internal static string mKW = "IFCISHAPEPROFILEDEF";
@@ -263,7 +261,7 @@ namespace GGYM.IFC
 		internal IfcIShapeProfileDef(IfcIShapeProfileDef i) : base(i) { mOverallWidth = i.mOverallWidth; mOverallDepth = i.mOverallDepth; mWebThickness = i.mWebThickness; mFlangeThickness = i.mFlangeThickness; mFilletRadius = i.mFilletRadius; mFlangeEdgeRadius = i.mFlangeEdgeRadius; mFlangeSlope = i.mFlangeSlope; }
 		public IfcIShapeProfileDef(DatabaseIfc m, string name, double overallDepth, double overalWidth, double webThickness, double flangeThickness, double filletRadius)
 			: base(m) { Name = name; mOverallDepth = overallDepth; mOverallWidth = overalWidth; mWebThickness = webThickness; mFlangeThickness = flangeThickness; mFilletRadius = filletRadius; }
-		internal new static IfcIShapeProfileDef Parse(string strDef, Schema schema) { IfcIShapeProfileDef p = new IfcIShapeProfileDef(); int ipos = 0; parseFields(p, ParserSTEP.SplitLineFields(strDef), ref ipos,schema); return p; }
+		internal static IfcIShapeProfileDef Parse(string strDef, Schema schema) { IfcIShapeProfileDef p = new IfcIShapeProfileDef(); int ipos = 0; parseFields(p, ParserSTEP.SplitLineFields(strDef), ref ipos,schema); return p; }
 		internal static void parseFields(IfcIShapeProfileDef p, List<string> arrFields, ref int ipos, Schema schema)
 		{
 			IfcParameterizedProfileDef.parseFields(p, arrFields, ref ipos);
@@ -272,9 +270,7 @@ namespace GGYM.IFC
 			p.mWebThickness = ParserSTEP.ParseDouble(arrFields[ipos++]);
 			p.mFlangeThickness = ParserSTEP.ParseDouble(arrFields[ipos++]);
 			p.mFilletRadius = ParserSTEP.ParseDouble(arrFields[ipos++]);
-			if (schema == Schema.IFC2x3)
-				ipos += 2;
-			else
+			if (schema != Schema.IFC2x3) 
 			{
 				p.mFlangeEdgeRadius = ParserSTEP.ParseDouble(arrFields[ipos++]);
 				p.mFlangeSlope = ParserSTEP.ParseDouble(arrFields[ipos++]);

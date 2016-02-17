@@ -24,9 +24,9 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public partial class IfcGasTerminalType : IfcFlowTerminalType // DEPRECEATED IFC4
 	{
@@ -50,8 +50,7 @@ namespace GGYM.IFC
 		internal double mMassDensity;//OPTIONAL IfcMassDensityMeasure
 		internal IfcGeneralMaterialProperties() : base() { }
 		internal IfcGeneralMaterialProperties(IfcGeneralMaterialProperties el) : base(el) { mMolecularWeight = el.mMolecularWeight; mPorosity = el.mPorosity; mMassDensity = el.mMassDensity; }
-		internal IfcGeneralMaterialProperties(IfcMaterial mat, double molecularWeight, double porosity, double massDensity, List<int> genData)
-			: base(mat, genData)
+		internal IfcGeneralMaterialProperties(IfcMaterial mat, double molecularWeight, double porosity, double massDensity) : base(mat)
 		{
 			mMolecularWeight = molecularWeight;
 			mPorosity = porosity;
@@ -61,7 +60,7 @@ namespace GGYM.IFC
 		internal static void parseFields(IfcGeneralMaterialProperties p, List<string> arrFields, ref int ipos) { IfcMaterialPropertiesSuperSeded.parseFields(p, arrFields, ref ipos); p.mMolecularWeight = ParserSTEP.ParseDouble(arrFields[ipos++]); p.mPorosity = ParserSTEP.ParseDouble(arrFields[ipos++]); p.mMassDensity = ParserSTEP.ParseDouble(arrFields[ipos++]); }
 		protected override string BuildString() { return base.BuildString() + "," + ParserSTEP.DoubleOptionalToString(mMolecularWeight) + "," + ParserSTEP.DoubleOptionalToString(mPorosity) + "," + ParserSTEP.DoubleOptionalToString(mMassDensity); }
 	}
-	public class IfcGeneralProfileProperties : IfcProfileProperties //DELETED IFC4
+	public class IfcGeneralProfileProperties : IfcProfileProperties //DELETED IFC4  SUPERTYPE OF	(IfcStructuralProfileProperties)
 	{ 
 		internal double mPhysicalWeight;// : OPTIONAL IfcMassPerLengthMeasure;
 		internal double mPerimeter;// : OPTIONAL IfcPositiveLengthMeasure;
@@ -70,9 +69,10 @@ namespace GGYM.IFC
 		internal double mCrossSectionArea;// : OPTIONAL IfcAreaMeasure;
 		internal IfcGeneralProfileProperties() : base() { }
 		internal IfcGeneralProfileProperties(IfcGeneralProfileProperties p) : base(p) { mPhysicalWeight = p.mPhysicalWeight; mPerimeter = p.mPerimeter; mMinimumPlateThickness = p.mMinimumPlateThickness; mMaximumPlateThickness = p.mMaximumPlateThickness; mCrossSectionArea = p.mCrossSectionArea; }
-		internal IfcGeneralProfileProperties(string name, List<IfcProperty> props, IfcProfileDef p, List<int> genData) : base(name, props, p, genData) { }
+		internal IfcGeneralProfileProperties(string name, IfcProfileDef p) : base(name, p) { }
+		internal IfcGeneralProfileProperties(string name, List<IfcProperty> props, IfcProfileDef p) : base(name, props, p) { }
 
-		internal new static IfcGeneralProfileProperties Parse(string strDef) { IfcGeneralProfileProperties p = new IfcGeneralProfileProperties(); int ipos = 0; parseFields(p, ParserSTEP.SplitLineFields(strDef), ref ipos); return p; }
+		internal static IfcGeneralProfileProperties Parse(string strDef) { IfcGeneralProfileProperties p = new IfcGeneralProfileProperties(); int ipos = 0; parseFields(p, ParserSTEP.SplitLineFields(strDef), ref ipos); return p; }
 		internal static void parseFields(IfcGeneralProfileProperties gp, List<string> arrFields, ref int ipos,Schema schema)
 		{
 			IfcProfileProperties.parseFields(gp, arrFields, ref ipos,schema);
@@ -206,7 +206,6 @@ namespace GGYM.IFC
 		protected IfcGeometricRepresentationItem() : base() { }
 		protected IfcGeometricRepresentationItem(IfcGeometricRepresentationItem p) : base(p) { }
 		protected IfcGeometricRepresentationItem(DatabaseIfc m) : base(m) { }
-		protected IfcGeometricRepresentationItem(DatabaseIfc m, List<int> genData) : base(m) { genData.Add(mIndex); }
 		protected static void parseFields(IfcGeometricRepresentationItem i, List<string> arrFields, ref int ipos) { IfcRepresentationItem.parseFields(i, arrFields, ref ipos); }
 		protected override void Parse(string str, ref int ipos) { base.Parse(str, ref ipos); }
 	}
@@ -368,7 +367,7 @@ namespace GGYM.IFC
 
 		internal IfcGridAxis() : base() { }
 		internal IfcGridAxis(IfcGridAxis p) : base() { mAxisTag = p.mAxisTag; mAxisCurve = p.mAxisCurve; mSameSense = p.mSameSense; }
-		internal IfcGridAxis(DatabaseIfc m, string tag, IfcCurve axis, bool sameSense, List<int> genData) : base(m) { if (!string.IsNullOrEmpty(tag)) mAxisTag = tag.Replace("'", ""); mAxisCurve = axis.mIndex; mSameSense = sameSense; genData.Add(mIndex); }
+		internal IfcGridAxis(DatabaseIfc m, string tag, IfcCurve axis, bool sameSense) : base(m) { if (!string.IsNullOrEmpty(tag)) mAxisTag = tag.Replace("'", ""); mAxisCurve = axis.mIndex; mSameSense = sameSense; }
 		internal static IfcGridAxis Parse(string strDef) { IfcGridAxis a = new IfcGridAxis(); int ipos = 0; parseFields(a, ParserSTEP.SplitLineFields(strDef), ref ipos); return a; }
 		internal static void parseFields(IfcGridAxis a, List<string> arrFields, ref int ipos) { a.mAxisTag = arrFields[ipos++].Replace("'", ""); a.mAxisCurve = ParserSTEP.ParseLink(arrFields[ipos++]); a.mSameSense = ParserSTEP.ParseBool(arrFields[ipos++]); }
 		protected override string BuildString() { return base.BuildString() + (mAxisTag == "$" ? ",$," : ",'" + mAxisTag + "',") + ParserSTEP.LinkToString(mAxisCurve) + "," + ParserSTEP.BoolToString(mSameSense); }
@@ -398,7 +397,7 @@ namespace GGYM.IFC
 
 		internal static IfcGroup Parse(string strDef) { IfcGroup g = new IfcGroup(); int ipos = 0; parseFields(g, ParserSTEP.SplitLineFields(strDef), ref ipos); return g; }
 		internal static void parseFields(IfcGroup g, List<string> arrFields, ref int ipos) { IfcObject.parseFields(g, arrFields, ref ipos); }
-		protected override string BuildString() { return (mDatabase.IFCModelView == ModelView.Ifc2x3Coordination ? "" : base.BuildString()); }
+		protected override string BuildString() { return (mDatabase.ModelView == ModelView.Ifc2x3Coordination ? "" : base.BuildString()); }
 		internal void assign(IfcObjectDefinition o) { mIsGroupedBy[0].assign(o); }
 	}
 }

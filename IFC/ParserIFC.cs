@@ -25,9 +25,9 @@ using System.IO;
 using System.ComponentModel;
 using System.Diagnostics;
 
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public static class ParserIfc 
 	{
@@ -114,8 +114,6 @@ namespace GGYM.IFC
 		public static IfcLogicalEnum StripLogical(string s, ref int pos)
 		{
 			IfcLogicalEnum result = IfcLogicalEnum.UNKNOWN;
-			//string temp = s.Substring(pos);
-			//ggBasic.printMessage(temp);
 			int icounter = pos, len = s.Length;
 			while (char.IsWhiteSpace(s[icounter]))
 			{
@@ -330,8 +328,6 @@ namespace GGYM.IFC
 					return IfcBoundaryFaceCondition.Parse(str);
 				if (string.Compare(keyword, IfcBoundaryNodeCondition.mKW, true) == 0)
 					return IfcBoundaryNodeCondition.Parse(str);
-				if (string.Compare(keyword, IfcBoundaryNodeCondition.mKW, true) == 0)
-					return IfcBoundaryNodeCondition.Parse(str);
 				if (string.Compare(keyword, IfcBoundaryNodeConditionWarping.mKW, true) == 0)
 					return IfcBoundaryNodeConditionWarping.Parse(str);
 				if (string.Compare(keyword, IfcBoundingBox.mKW, true) == 0)
@@ -358,6 +354,8 @@ namespace GGYM.IFC
 					return IfcBuildingElementProxyType.Parse(str);
 				if (string.Compare(suffix, "BUILDINGSTOREY", true) == 0)
 					return IfcBuildingStorey.Parse(str);
+				if (string.Compare(suffix, "BUILDINGSYSTEM", true) == 0)
+					return IfcBuildingSystem.Parse(str);
 				if (string.Compare(suffix, "BURNER", true) == 0)
 					return IfcBurner.Parse(str);
 				if (string.Compare(keyword, IfcBurnerType.mKW, true) == 0)
@@ -488,9 +486,9 @@ namespace GGYM.IFC
 					return IfcController.Parse(str);
 				if (string.Compare(keyword, IfcControllerType.mKW, true) == 0)
 					return IfcCoveringType.Parse(str);
-				if (string.Compare(keyword, IfcConversionBasedUnit.mKW, true) == 0)
+				if (string.Compare(suffix, "CONVERSIONBASEDUNIT", true) == 0)
 					return IfcConversionBasedUnit.Parse(str);
-				if (string.Compare(keyword, IfcConversionBasedUnitWithOffset.mKW, true) == 0)
+				if (string.Compare(suffix, "CONVERSIONBASEDUNITWITHOFFSET", true) == 0)
 					return IfcConversionBasedUnitWithOffset.Parse(str);
 				if (string.Compare(suffix, "COOLEDBEAM", true) == 0)
 					return IfcCooledBeam.Parse(str);
@@ -546,11 +544,11 @@ namespace GGYM.IFC
 					return IfcDateAndTime.Parse(str);
 				if (string.Compare(keyword, IfcDerivedProfileDef.mKW, true) == 0)
 					return IfcDerivedProfileDef.Parse(str);
-				if (string.Compare(keyword, IfcDerivedUnit.mKW, true) == 0)
+				if (string.Compare(suffix, "DERIVEDUNIT", true) == 0)
 					return IfcDerivedUnit.Parse(str);
-				if (string.Compare(keyword, IfcDerivedUnitElement.mKW, true) == 0)
+				if (string.Compare(suffix, "DERIVEDUNITELEMENT", true) == 0)
 					return IfcDerivedUnitElement.Parse(str);
-				if (string.Compare(keyword, IfcDimensionalExponents.mKW, true) == 0)
+				if (string.Compare(suffix, "DIMENSIONALEXPONENTS", true) == 0)
 					return IfcDimensionalExponents.Parse(str);
 				if (string.Compare(keyword, IfcDiscreteAccessory.mKW, true) == 0)
 					return IfcDiscreteAccessory.Parse(str, schema);
@@ -570,11 +568,11 @@ namespace GGYM.IFC
 					return IfcDistributionElementType.Parse(str);
 				if (string.Compare(suffix, "DISTRIBUTIONFLOWELEMENT", true) == 0)
 					return IfcDistributionFlowElement.Parse(str);
-				if (string.Compare(keyword, IfcDistributionPort.mKW, true) == 0)
+				if (string.Compare(suffix, "DISTRIBUTIONPORT", true) == 0)
 					return IfcDistributionPort.Parse(str, schema);
-				if (string.Compare(keyword, IfcDistributionConduit.mKW, true) == 0)
-					return IfcDistributionConduit.Parse(str);
-				if (string.Compare(keyword, IfcDistributionSystem.mKW, true) == 0)
+				if (string.Compare(suffix, "DISTRIBUTIONCIRCUIT", true) == 0)
+					return IfcDistributionCircuit.Parse(str);
+				if (string.Compare(suffix, "DISTRIBUTIONSYSTEM", true) == 0)
 					return IfcDistributionSystem.Parse(str);
 				if (string.Compare(suffix, "DOCUMENTINFORMATION", true) == 0)
 					return IfcDocumentInformation.Parse(str, schema);
@@ -825,7 +823,7 @@ namespace GGYM.IFC
 				if (string.Compare(keyword, IfcImageTexture.mKW, true) == 0)
 					return IfcImageTexture.Parse(str,schema);
 				if (string.Compare(keyword, IfcIShapeProfileDef.mKW, true) == 0)
-					return IfcIShapeProfileDef.Parse(str);
+					return IfcIShapeProfileDef.Parse(str,schema);
 				if (string.Compare(keyword, IfcInventory.mKW, true) == 0)
 					return IfcInventory.Parse(str);
 			}
@@ -872,7 +870,7 @@ namespace GGYM.IFC
 			{
 				if (string.Compare(keyword, IfcMapConversion.mKW, true) == 0)
 					return IfcMapConversion.Parse(str);
-				if (string.Compare(keyword, IfcMappedItem.mKW, true) == 0)
+				if (string.Compare(suffix, "MAPPEDITEM", true) == 0)
 					return IfcMappedItem.Parse(str);
 				if (string.Compare(suffix, "MATERIAL", true) == 0)
 					return IfcMaterial.Parse(str, schema);
@@ -884,7 +882,7 @@ namespace GGYM.IFC
 					return IfcMaterialConstituentSet.Parse(str);
 				if (string.Compare(keyword, IfcMaterialDefinitionRepresentation.mKW, true) == 0)
 					return IfcMaterialDefinitionRepresentation.Parse(str);
-				if (string.Compare(keyword, IfcMaterialLayer.mKW, true) == 0)
+				if (string.Compare(suffix, "MATERIALLAYER", true) == 0)
 					return IfcMaterialLayer.Parse(str, schema);
 				if (string.Compare(suffix, "MATERIALLAYERSET", true) == 0)
 					return IfcMaterialLayerSet.Parse(str, schema);
@@ -906,9 +904,9 @@ namespace GGYM.IFC
 					return IfcMaterialProfileSetUsageTapering.Parse(str);
 				if (string.Compare(suffix, "MATERIALPROFILEWITHOFFSETS", true) == 0)
 					return IfcMaterialProfileWithOffsets.Parse(str);
-				if (string.Compare(keyword, IfcMaterialProperties.mKW, true) == 0)
-					return IfcMaterialProperties.Parse(str,schema);
-				if (string.Compare(keyword, IfcMeasureWithUnit.mKW, true) == 0)
+				if (string.Compare(suffix, "MATERIALPROPERTIES", true) == 0)
+                    return IfcMaterialProperties.Parse(str,schema);
+				if (string.Compare(suffix, "MEASUREWITHUNIT", true) == 0)
 					return IfcMeasureWithUnit.Parse(str);
 				if (string.Compare(keyword, IfcMechanicalConcreteMaterialProperties.mKW, true) == 0)
 					return IfcMechanicalConcreteMaterialProperties.Parse(str);
@@ -969,17 +967,15 @@ namespace GGYM.IFC
 			#region P to Q
 			if (keyword[3] == 'P')
 			{
-				if (string.Compare(keyword, IfcPropertySingleValue.mKW, true) == 0)
+				if (string.Compare(suffix, "PROPERTYSINGLEVALUE", true) == 0)
 					return IfcPropertySingleValue.Parse(str);
 				if (string.Compare(keyword, IfcPolyloop.mKW, true) == 0)
 					return IfcPolyloop.Parse(str);
-				if (string.Compare(keyword, IfcPropertySet.mKW, true) == 0)
+				if (string.Compare(suffix, "PROPERTYSET", true) == 0)
 					return IfcPropertySet.Parse(str);
 				if (string.Compare(suffix, "PRODUCTDEFINITIONSHAPE", true) == 0)
 					return IfcProductDefinitionShape.Parse(str);
 
-				if (string.Compare(keyword, "IFCPARAMETERIZEDPROFILEDEF", true) == 0)
-					return IfcProfileDef.Parse(str);
 				if (string.Compare(keyword, IfcPath.mKW, true) == 0)
 					return IfcPath.Parse(str);
 				if (string.Compare(keyword, IfcPerson.mKW, true) == 0)
@@ -1028,7 +1024,9 @@ namespace GGYM.IFC
 					return IfcPresentationStyleAssignment.Parse(str);
 				if (string.Compare(suffix, "PRODUCTREPRESENTATION", true) == 0)
 					return IfcProductRepresentation.Parse(str);
-				if (string.Compare(keyword, IfcProfileProperties.mKW, true) == 0)
+				if (string.Compare(keyword, "IFCPROFILEDEF", true) == 0)
+					return IfcProfileDef.Parse(str);
+				if (string.Compare(suffix, "PROFILEPROPERTIES", true) == 0)
 					return IfcProfileProperties.Parse(str, schema);
 				if (string.Compare(suffix, "PROJECT", true) == 0)
 					return IfcProject.Parse(str);
@@ -1062,6 +1060,9 @@ namespace GGYM.IFC
 					return IfcPump.Parse(str);
 				if (string.Compare(keyword, IfcPumpType.mKW, true) == 0)
 					return IfcPumpType.Parse(str);
+
+				if (string.Compare(keyword, "IFCPARAMETERIZEDPROFILEDEF", true) == 0)
+					return IfcProfileDef.Parse(str);
 			}
 			if (keyword[3] == 'Q')
 			{
@@ -1109,117 +1110,149 @@ namespace GGYM.IFC
 						return IfcRelAssignsToProduct.Parse(str);
 					if (string.Compare(suffix, "ASSIGNSTOPRODUCT", true) == 0)
 						return IfcRelAssignsToProduct.Parse(str);
-					if (string.Compare(keyword, IfcRelAssociatesClassification.mKW, true) == 0)
+					//IfcRelAssignsToProjectOrder
+					if (string.Compare(suffix, "ASSIGNSTORESOURCE", true) == 0)
+						return IfcRelAssignsToResource.Parse(str);
+					//IfcRelAssociatesAppliedValue
+					//IfcRelAssociatesApproval
+					if (string.Compare(suffix, "ASSOCIATESCLASSIFICATION", true) == 0)
 						return IfcRelAssociatesClassification.Parse(str);
-					if (string.Compare(keyword, IfcRelAssociatesConstraint.mKW, true) == 0)
+					if (string.Compare(suffix, "ASSOCIATESCONSTRAINT", true) == 0)
 						return IfcRelAssociatesConstraint.Parse(str);
-					if (string.Compare(keyword, IfcRelAssociatesDocument.mKW, true) == 0)
+					if (string.Compare(suffix, "ASSOCIATESDOCUMENT", true) == 0)
 						return IfcRelAssociatesDocument.Parse(str);
-					if (string.Compare(keyword, IfcRelAssociatesLibrary.mKW, true) == 0)
+					if (string.Compare(suffix, "ASSOCIATESLIBRARY", true) == 0)
 						return IfcRelAssociatesLibrary.Parse(str);
-					if (string.Compare(keyword, IfcRelAssociatesMaterial.mKW, true) == 0)
+					if (string.Compare(suffix, "ASSOCIATESMATERIAL", true) == 0)
 						return IfcRelAssociatesMaterial.Parse(str);
-					if (string.Compare(keyword, IfcRelAssociatesProfileProperties.mKW, true) == 0)
+					if (string.Compare(suffix, "ASSOCIATESPROFILEPROPERTIES", true) == 0)
 						return IfcRelAssociatesProfileProperties.Parse(str);
-					if (string.Compare(keyword, IfcRelConnectsElements.mKW, true) == 0)
+					if (string.Compare(suffix, "CONNECTSELEMENTS", true) == 0)
 						return IfcRelConnectsElements.Parse(str);
-					if (string.Compare(keyword, IfcRelConnectsPathElements.mKW, true) == 0)
+					if (string.Compare(suffix, "CONNECTSPATHELEMENTS", true) == 0)
 						return IfcRelConnectsPathElements.Parse(str);
-					if (string.Compare(keyword, IfcRelConnectsPortToElement.mKW, true) == 0)
+					if (string.Compare(suffix, "CONNECTSPORTTOELEMENT", true) == 0)
 						return IfcRelConnectsPortToElement.Parse(str);
-					if (string.Compare(keyword, IfcRelConnectsPorts.mKW, true) == 0)
+					if (string.Compare(suffix, "CONNECTSPORTS", true) == 0)
 						return IfcRelConnectsPorts.Parse(str);
-					if (string.Compare(keyword, IfcRelConnectsStructuralActivity.mKW, true) == 0)
+					if (string.Compare(keyword, "CONNECTSSTRUCTURALACTIVITY", true) == 0)
 						return IfcRelConnectsStructuralActivity.Parse(str);
-					if (string.Compare(keyword, IfcRelConnectsStructuralElement.mKW, true) == 0)
+					if (string.Compare(suffix, "CONNECTSSTRUCTURALELEMENT", true) == 0)
 						return IfcRelConnectsStructuralElement.Parse(str);
-					if (string.Compare(keyword, IfcRelConnectsStructuralMember.mKW, true) == 0)
+					if (string.Compare(suffix, "CONNECTSSTRUCTURALMEMBER", true) == 0)
 						return IfcRelConnectsStructuralMember.Parse(str);
-					if (string.Compare(keyword, IfcRelConnectsWithEccentricity.mKW, true) == 0)
+					if (string.Compare(suffix, "CONNECTSWITHECCENTRICITY", true) == 0)
 						return IfcRelConnectsWithEccentricity.Parse(str);
-					if (string.Compare(keyword, IfcRelConnectsWithRealizingElements.mKW, true) == 0)
+					if (string.Compare(suffix, "CONNECTSWITHREALIZINGELEMENTS", true) == 0)
 						return IfcRelConnectsWithRealizingElements.Parse(str);
-					if (string.Compare(keyword, IfcRelCoversBldgElements.mKW, true) == 0)
+					if (string.Compare(suffix, "COVERSBLDGELEMENTS", true) == 0)
 						return IfcRelCoversBldgElements.Parse(str);
-					if (string.Compare(keyword, IfcRelCoversSpaces.mKW, true) == 0)
+					if (string.Compare(suffix, "COVERSSPACES", true) == 0)
 						return IfcRelCoversSpaces.Parse(str);
-					if (string.Compare(keyword, IfcRelDeclares.mKW, true) == 0)
+					if (string.Compare(suffix, "DECLARES", true) == 0)
 						return IfcRelDeclares.Parse(str);
-					if (string.Compare(keyword, IfcRelDefinesByObject.mKW, true) == 0)
+					if (string.Compare(suffix, "DEFINESBYOBJECT", true) == 0)
 						return IfcRelDefinesByObject.Parse(str);
-					if (string.Compare(keyword, IfcRelDefinesByType.mKW, true) == 0)
+					if (string.Compare(suffix, "DEFINESBYTYPE", true) == 0)
 						return IfcRelDefinesByType.Parse(str);
-					if (string.Compare(keyword, IfcRelFillsElement.mKW, true) == 0)
+					if (string.Compare(suffix, "FILLSELEMENT", true) == 0)
 						return IfcRelFillsElement.Parse(str);
-					if (string.Compare(keyword, IfcRelNests.mKW, true) == 0)
+					if (string.Compare(suffix, "FLOWCONTROLELEMENTS", true) == 0)
+						return IfcRelFlowControlElements.Parse(str);
+					//IfcRelInteractionRequirements
+					if (string.Compare(suffix, "NESTS", true) == 0)
 						return IfcRelNests.Parse(str);
-					if (string.Compare(keyword, IfcRelSequence.mKW, true) == 0)
+					//IfcRelOccupiesSpaces
+					//IfcRelOverridesProperties
+					//if (string.Compare(suffix, "PROJECTSELEMENTS", true) == 0)
+					//	return IfcRelProjectsElement.Parse(str);
+					//IfcRelReferencedInSpatialStructure
+					//IfcRelSchedulesCostItems
+					if (string.Compare(suffix, "SEQUENCE", true) == 0)
 						return IfcRelSequence.Parse(str, schema);
-					if (string.Compare(keyword, IfcRelServicesBuildings.mKW, true) == 0)
+					if (string.Compare(suffix, "SERVICESBUILDINGS", true) == 0)
 						return IfcRelServicesBuildings.Parse(str);
-					if (string.Compare(keyword, IfcRelSpaceBoundary.mKW, true) == 0)
+					if (string.Compare(suffix, "SPACEBOUNDARY", true) == 0)
 						return IfcRelSpaceBoundary.Parse(str);
-					if (string.Compare(keyword, IfcRelSpaceBoundary1stLevel.mKW, true) == 0)
+					if (string.Compare(suffix, "SPACEBOUNDARY1STLEVEL", true) == 0)
 						return IfcRelSpaceBoundary1stLevel.Parse(str);
-					if (string.Compare(keyword, IfcRelSpaceBoundary2ndLevel.mKW, true) == 0)
+					if (string.Compare(suffix, "SPACEBOUNDARY2NDLEVEL", true) == 0)
 						return IfcRelSpaceBoundary2ndLevel.Parse(str);
-					if (string.Compare(keyword, IfcRelVoidsElement.mKW, true) == 0)
+					if (string.Compare(suffix, "VOIDSELEMENT", true) == 0)
 						return IfcRelVoidsElement.Parse(str);
 					#endregion
 				}
 				else
 				{
-					if (string.Compare(keyword, IfcRailing.mKW, true) == 0)
+					if (string.Compare(suffix, "RADIUSDIMENSION", true) == 0)
+						return IfcRadiusDimension.Parse(str);
+					if (string.Compare(suffix, "RAILING", true) == 0)
 						return IfcRailing.Parse(str);
-					if (string.Compare(keyword, IfcRailingType.mKW, true) == 0)
+					if (string.Compare(suffix, "RAILINGTYPE", true) == 0)
 						return IfcRailingType.Parse(str);
-					if (string.Compare(keyword, IfcRamp.mKW, true) == 0)
+					if (string.Compare(keyword, "RAMP", true) == 0)
 						return IfcRamp.Parse(str);
 					if (string.Compare(suffix, "RAMPFLIGHT", true) == 0)
 						return IfcRampFlight.Parse(str, schema);
-					if (string.Compare(keyword, IfcRationalBezierCurve.mKW, true) == 0)
+					if (string.Compare(suffix, "RAMPFLIGHTTYPE", true) == 0)
+						return IfcRampFlightType.Parse(str);
+					if (string.Compare(suffix, "RAMPTYPE", true) == 0)
+						return IfcRampType.Parse(str);
+					if (string.Compare(suffix, "RATIONALBEZIERCURVE", true) == 0)
 						return IfcRationalBezierCurve.Parse(str);
-					if (string.Compare(keyword, IfcRationalBSplineCurveWithKnots.mKW, true) == 0)
+					if (string.Compare(suffix, "RATIONALBSPLINECURVEWITHKNOTS", true) == 0)
 						return IfcRationalBSplineCurveWithKnots.Parse(str);
-					if (string.Compare(keyword, IfcRationalBSplineSurfaceWithKnots.mKW, true) == 0)
+					if (string.Compare(suffix, "RATIONALBSPLINESURFACEWITHKNOTS", true) == 0)
 						return IfcRationalBSplineSurfaceWithKnots.Parse(str);
-					if (string.Compare(keyword, IfcRectangleHollowProfileDef.mKW, true) == 0)
+					if (string.Compare(suffix, "RECTANGLEHOLLOWPROFILEDEF", true) == 0)
 						return IfcRectangleHollowProfileDef.Parse(str);
-					if (string.Compare(keyword, IfcRectangleProfileDef.mKW, true) == 0)
+					if (string.Compare(suffix, "RECTANGLEPROFILEDEF", true) == 0)
 						return IfcRectangleProfileDef.Parse(str);
-					if (string.Compare(keyword, IfcRectangularPyramid.mKW, true) == 0)
+					if (string.Compare(suffix, "RECTANGULARPYRAMID", true) == 0)
 						return IfcRectangularPyramid.Parse(str);
-					if (string.Compare(keyword, IfcRectangularTrimmedSurface.mKW, true) == 0)
+					if (string.Compare(suffix, "RECTANGULARTRIMMEDSURFACE", true) == 0)
 						return IfcRectangularTrimmedSurface.Parse(str);
-					if (string.Compare(keyword, IfcRecurrencePattern.mKW, true) == 0)
+					if (string.Compare(suffix, "RECURRENCEPATTERN", true) == 0)
 						return IfcRecurrencePattern.Parse(str);
-					if (string.Compare(keyword, IfcReference.mKW, true) == 0)
+					if (string.Compare(suffix, "REFERENCE", true) == 0)
 						return IfcReference.Parse(str);
-					if (string.Compare(keyword, IfcReinforcingBar.mKW, true) == 0)
+					//IfcReferencesValueDocument
+					//IfcRegularTimeSeries
+					if (string.Compare(suffix, "REINFORCEMENTBARPROPERTIES", true) == 0)
+						return IfcReinforcementBarProperties.Parse(str);
+					if (string.Compare(suffix, "REINFORCEMENTDEFINITIONPROPERTIES", true) == 0)
+						return IfcReinforcementDefinitionProperties.Parse(str);
+					if (string.Compare(suffix, "REINFORCINGBAR", true) == 0)
 						return IfcReinforcingBar.Parse(str);
-					if (string.Compare(keyword, IfcReinforcingBarType.mKW, true) == 0)
+					if (string.Compare(suffix, "REINFORCINGBARTYPE", true) == 0)
 						return IfcReinforcingBarType.Parse(str);
-					if (string.Compare(keyword, IfcRepresentation.mKW, true) == 0)
+					if (string.Compare(suffix, "REINFORCINGMESH", true) == 0)
+						return IfcReinforcingMesh.Parse(str,schema);
+					if (string.Compare(suffix, "REPRESENTATION", true) == 0)
 						return IfcRepresentation.Parse(str);
-					if (string.Compare(keyword, IfcRepresentationMap.mKW, true) == 0)
+					if (string.Compare(suffix, "REPRESENTATIONMAP", true) == 0)
 						return IfcRepresentationMap.Parse(str);
-					if (string.Compare(keyword, IfcResourceConstraintRelationship.mKW, true) == 0)
+					if (string.Compare(suffix, "RESOURCECONSTRAINTRELATIONSHIP", true) == 0)
 						return IfcResourceConstraintRelationship.Parse(str,schema);
-					if (string.Compare(keyword, IfcRevolvedAreaSolid.mKW, true) == 0)
+					if (string.Compare(suffix, "RESOURCETIME", true) == 0)
+						return IfcResourceTime.Parse(str);
+					if (string.Compare(suffix, "REVOLVEDAREASOLID", true) == 0)
 						return IfcRevolvedAreaSolid.Parse(str);
+					//IfcRevolvedAreaSolidTapered
 					if (string.Compare(suffix, "RIBPLATEPROFILEPROPERTIES", true) == 0)
 						return IfcRibPlateProfileProperties.Parse(str, schema);
-					if (string.Compare(keyword, IfcRightCircularCone.mKW, true) == 0)
+					if (string.Compare(suffix, "RIGHTCIRCULARCONE", true) == 0)
 						return IfcRightCircularCone.Parse(str);
-					if (string.Compare(keyword, IfcRightCircularCylinder.mKW, true) == 0)
+					if (string.Compare(suffix, "RIGHTCIRCULARCYLINDER", true) == 0)
 						return IfcRightCircularCylinder.Parse(str);
 					if (string.Compare(suffix, "ROOF", true) == 0)
 						return IfcRoof.Parse(str);
-					if (string.Compare(keyword, IfcRoofType.mKW, true) == 0)
+					if (string.Compare(suffix, "ROOFTYPE", true) == 0)
 						return IfcRoofType.Parse(str);
-					if (string.Compare(keyword, IfcRoundedRectangleProfileDef.mKW, true) == 0)
+					//IfcRoundedEdgeFeature
+					if (string.Compare(suffix, "ROUNDEDRECTANGLEPROFILEDEF", true) == 0)
 						return IfcRoundedRectangleProfileDef.Parse(str);
-					if (string.Compare(suffix, "RATIONALBSPLINESURFACEEWITHKNOTS", true) == 0)
+					if (string.Compare(suffix, "RATIONALBSPLINESURFACEEWITHKNOTS", true) == 0) //Previous typo
 						return IfcRationalBSplineSurfaceWithKnots.Parse(str);
 				}
 
@@ -1244,19 +1277,19 @@ namespace GGYM.IFC
 					return IfcSensor.Parse(str);
 				if (string.Compare(keyword, IfcSensorType.mKW, true) == 0)
 					return IfcSensorType.Parse(str);
-				if (string.Compare(keyword, IfcShapeAspect.mKW, true) == 0)
+				if (string.Compare(suffix, "SHAPEASPECT", true) == 0)
 					return IfcShapeAspect.Parse(str);
 				if (string.Compare(keyword, IfcShadingDevice.mKW, true) == 0)
 					return IfcShadingDevice.Parse(str, schema);
 				if (string.Compare(keyword, IfcShadingDeviceType.mKW, true) == 0)
 					return IfcShadingDeviceType.Parse(str);
-				if (string.Compare(keyword, IfcShapeAspect.mKW, true) == 0)
+				if (string.Compare(suffix, "SHAPEASPECT", true) == 0)
 					return IfcShapeAspect.Parse(str);
 				if (string.Compare(keyword, IfcShellBasedSurfaceModel.mKW, true) == 0)
 					return IfcShellBasedSurfaceModel.Parse(str);
 				if (string.Compare(keyword, IfcSite.mKW, true) == 0)
 					return IfcSite.Parse(str);
-				if (string.Compare(keyword, IfcSIUnit.mKW, true) == 0)
+				if (string.Compare(suffix, "SIUNIT", true) == 0)
 					return IfcSIUnit.Parse(str);
 				if (string.Compare(keyword, IfcSlab.mKW, true) == 0)
 					return IfcSlab.Parse(str);
@@ -1296,13 +1329,13 @@ namespace GGYM.IFC
 					return IfcStairFlightType.Parse(str);
 				if (string.Compare(keyword, IfcStairType.mKW, true) == 0)
 					return IfcStairType.Parse(str);
-				if (string.Compare(keyword, IfcStructuralAnalysisModel.mKW, true) == 0)
+				if (string.Compare(suffix, "STRUCTURALANALYSISMODEL", true) == 0)
 					return IfcStructuralAnalysisModel.Parse(str);
 				if (string.Compare(keyword, IfcStructuralCurveAction.mKW, true) == 0)
 					return IfcStructuralCurveAction.Parse(str,schema);
 				if (string.Compare(keyword, IfcStructuralCurveConnection.mKW, true) == 0)
 					return IfcStructuralCurveConnection.Parse(str);
-				if (string.Compare(keyword, IfcStructuralCurveMember.mKW, true) == 0)
+				if (string.Compare(suffix, "STRUCTURALCURVEMEMBER", true) == 0)
 					return IfcStructuralCurveMember.Parse(str,schema);
 				if (string.Compare(keyword, IfcStructuralCurveMemberVarying.mKW, true) == 0)
 					return IfcStructuralCurveMemberVarying.Parse(str);
@@ -1334,8 +1367,8 @@ namespace GGYM.IFC
 					return IfcStructuralPointConnection.Parse(str);
 				if (string.Compare(keyword, IfcStructuralPointReaction.mKW, true) == 0)
 					return IfcStructuralPointReaction.Parse(str);
-				if (string.Compare(keyword, IfcStructuralProfileProperties.mKW, true) == 0)
-					return IfcStructuralProfileProperties.Parse(str);
+				if (string.Compare(suffix, "STRUCTURALPROFILEPROPERTIES", true) == 0)
+					return IfcStructuralProfileProperties.Parse(str,schema);
 				if (string.Compare(keyword, IfcStructuralResultGroup.mKW, true) == 0)
 					return IfcStructuralResultGroup.Parse(str);
 				if (string.Compare(keyword, IfcStructuralSteelProfileProperties.mKW, true) == 0)
@@ -1370,7 +1403,7 @@ namespace GGYM.IFC
 					return IfcSwitchingDevice.Parse(str);
 				if (string.Compare(keyword, IfcSwitchingDeviceType.mKW, true) == 0)
 					return IfcSwitchingDeviceType.Parse(str);
-				if (string.Compare(keyword, IfcSystem.mKW, true) == 0)
+				if (string.Compare(suffix, "SYSTEM", true) == 0)
 					return IfcSystem.Parse(str);
 				if (string.Compare(keyword, IfcSystemFurnitureElement.mKW, true) == 0)
 					return IfcSystemFurnitureElement.Parse(str);
@@ -1505,10 +1538,10 @@ namespace GGYM.IFC
 					return IfcWorkSchedule.Parse(str,schema);
 				if (string.Compare(keyword, IfcWorkTime.mKW, true) == 0)
 					return IfcWorkTime.Parse(str);
-				if (string.Compare(keyword, IfcZShapeProfileDef.mKW, true) == 0)
-					return IfcZShapeProfileDef.Parse(str);
-				if (string.Compare(keyword, IfcZone.mKW, true) == 0)
+				if (string.Compare(suffix, "ZONE", true) == 0)
 					return IfcZone.Parse(str);
+				if (string.Compare(suffix, "ZSHAPEPROFILEDEF", true) == 0)
+					return IfcZShapeProfileDef.Parse(str);
 				if (string.Compare(keyword, Ifc2dCompositeCurve.mKW, true) == 0)
 					return Ifc2dCompositeCurve.Parse(str);
 			}

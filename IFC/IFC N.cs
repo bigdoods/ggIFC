@@ -24,9 +24,9 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public abstract partial class IfcNamedUnit : BaseClassIfc, IfcUnit //ABSTRACT SUPERTYPE OF (ONEOF(IfcContextDependentUnit,IfcConversionBasedUnit,IfcSIUnit));
 	{
@@ -37,21 +37,20 @@ namespace GGYM.IFC
 
 		protected IfcNamedUnit(IfcNamedUnit p) : base() { mDimensions = p.mDimensions; mUnitType = p.mUnitType; }
 		protected IfcNamedUnit() : base() { }
-		protected IfcNamedUnit(DatabaseIfc m, IfcUnitEnum unitEnum, bool gendims, List<int> genData) : base(m)
+		protected IfcNamedUnit(DatabaseIfc m, IfcUnitEnum unitEnum, bool gendims) : base(m)
 		{
 			mUnitType = unitEnum;
 			if (gendims)
 			{
 				if (unitEnum == IfcUnitEnum.LENGTHUNIT)
-					mDimensions = new IfcDimensionalExponents(m, 1, 0, 0, 0, 0, 0, 0, genData).mIndex;
+					mDimensions = new IfcDimensionalExponents(m, 1, 0, 0, 0, 0, 0, 0).mIndex;
 				else if (unitEnum == IfcUnitEnum.AREAUNIT)
-					mDimensions = new IfcDimensionalExponents(m, 2, 0, 0, 0, 0, 0, 0, genData).mIndex;
+					mDimensions = new IfcDimensionalExponents(m, 2, 0, 0, 0, 0, 0, 0).mIndex;
 				else if (unitEnum == IfcUnitEnum.VOLUMEUNIT)
-					mDimensions = new IfcDimensionalExponents(m, 3, 0, 0, 0, 0, 0, 0, genData).mIndex;
+					mDimensions = new IfcDimensionalExponents(m, 3, 0, 0, 0, 0, 0, 0).mIndex;
 				else if (unitEnum == IfcUnitEnum.PLANEANGLEUNIT)
-					mDimensions = new IfcDimensionalExponents(m, 0, 0, 0, 0, 0, 0, 0, genData).mIndex;
+					mDimensions = new IfcDimensionalExponents(m, 0, 0, 0, 0, 0, 0, 0).mIndex;
 			}
-			genData.Add(mIndex); 
 		}
 		protected override string BuildString() { return base.BuildString() + "," + (mDimensions == 0 ? "*" : ParserSTEP.LinkToString(mDimensions)) + ",." + mUnitType.ToString() + "."; }
 		protected static void parseFields(IfcNamedUnit u, List<string> arrFields, ref int ipos) { u.mDimensions = ParserSTEP.ParseLink(arrFields[ipos++]); u.mUnitType = (IfcUnitEnum)Enum.Parse(typeof(IfcUnitEnum), arrFields[ipos++].Replace(".", "")); }

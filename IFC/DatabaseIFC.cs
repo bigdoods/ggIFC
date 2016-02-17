@@ -26,9 +26,9 @@ using System.Linq;
 using System.Drawing;
 using System.Globalization;
 using System.Threading;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 { 
 	public enum Schema {  IFC2x3, IFC4, IFC4A1 };
 	public enum ModelView { Ifc4Reference, Ifc4DesignTransfer, Ifc4NotAssigned,Ifc2x3Coordination, If2x3NotAssigned };
@@ -249,14 +249,6 @@ namespace GGYM.IFC
 					mShapeAspects.Add(shapeAspect);
 					return;
 				}
-				//IfcStructuralAnalysisModel structuralAnalysisModel = obj as IfcStructuralAnalysisModel;
-				//if (structuralAnalysisModel != null)
-				//{
-				//	if (mStructAnalModel != null)
-				//		//ggBasic.printMessage("XXXX Multiple Structural Analysis models found, only single model processed.  Please make request to Jon");
-				//		mStructAnalModel = structuralAnalysisModel;
-				//	return structuralAnalysisModel;
-				//}
 				IfcStyledItem styledItem = obj as IfcStyledItem;
 				if (styledItem != null)
 				{
@@ -328,13 +320,19 @@ namespace GGYM.IFC
 						rc.relate();
 					foreach (IfcShapeAspect sa in mShapeAspects)
 						sa.relate();
+					for(icounter = 0; icounter < mTypeProducts.Count; icounter++)
+					{
+						List<IfcRepresentationMap> repMaps = mTypeProducts[icounter].RepresentationMaps;
+						for (int jcounter = 0; jcounter < repMaps.Count; jcounter++)
+							repMaps[jcounter].mTypeProducts.Add(mTypeProducts[icounter]);
+					}
 					for (icounter = 0; icounter < mStyledItems.Count; icounter++)
 						mStyledItems[icounter].associateItem();
 					InitializeOthers(folder);
 				}
-				catch (Exception x)
+				catch (Exception)
 				{
-					//ggBasic.printMessage("XXX " + x.ToString());
+					//logError.printMessage("XXX " + x.ToString());
 				}
 			}
 		}
@@ -354,7 +352,7 @@ namespace GGYM.IFC
 			get { return mSchema; }  
 			set { mSchema = value; } 
 		}
-		public ModelView IFCModelView
+		public ModelView ModelView
 		{
 			get { return mModelView; }
 			set { mModelView = value; }
@@ -377,7 +375,7 @@ namespace GGYM.IFC
 		}
 		internal List<BaseClassIfc> mIfcObjects = new List<BaseClassIfc>(new BaseClassIfc[] { new BaseClassIfc() }); 
 
-		private IfcCartesianPoint mOrigin = null, mWorldOrigin = null;
+		private IfcCartesianPoint mOrigin = null, mWorldOrigin = null,mOrigin2d = null;
 		internal IfcDirection mXAxis, mYAxis, mZAxis;
 		//internal int mTempWorldCoordinatePlacement = 0;
 		private IfcAxis2Placement3D mWorldCoordinatePlacement;
@@ -434,16 +432,9 @@ namespace GGYM.IFC
 		internal IfcContext mContext = null;
 		
 		internal HashSet<string> mGlobalIDs = new HashSet<string>();
-		
-		
-		//internal bool openInit()
-		//{
-		//	mApplications = new List<IfcApplication>();
-		//	mSubContexts = new List<IfcGeometricRepresentationSubContext>();
-		//	mRepMaps = new List<IfcRepresentationMap>();
-		//	mStructAnalModel = null;
-		//	return true;
-		//}
+
+		partial void printError(string str);
+		internal void logError(string str) { printError(str); }
 		partial void getApplicationString(ref string app);
 		internal string applicationString
 		{
@@ -506,7 +497,7 @@ namespace GGYM.IFC
 			mSchema = schema;
 			mModelView = view;
 #if(RHINO)
-			mModelSIScale = 1 / Units.mLengthConversion[(int)GGYMRhino.GGRhino.ActiveUnits()];
+			mModelSIScale = 1 / GGYM.Units.mLengthConversion[(int) GGYM.GGYMRhino.GGRhino.ActiveUnits()];
 			Tolerance = Rhino.RhinoDoc.ActiveDoc.ModelAbsoluteTolerance;
 #endif 
 			if (mSchema == Schema.IFC2x3 || mSchema == Schema.IFC4)
@@ -526,15 +517,10 @@ namespace GGYM.IFC
 		
 		internal void initData()
 		{ 
-			List<int> genData = new List<int>();
 			initGeom();
-			
-				//	mGeoRepSubContxtAnalysisSurface = new IfcGeometricRepresentationSubContext(this, "Face", mGeomRepContxt, 0, IfcGeometricProjectionEnum.USERDEFINED, "ANALYSIS", genData);
-			mSILength = new IfcSIUnit(this, IfcUnitEnum.LENGTHUNIT, IfcSIPrefix.NONE, IfcSIUnitName.METRE, genData);
-			
-			mSIArea = new IfcSIUnit(this, IfcUnitEnum.AREAUNIT, IfcSIPrefix.NONE, IfcSIUnitName.SQUARE_METRE, genData);
-			mSIVolume = new IfcSIUnit(this, IfcUnitEnum.VOLUMEUNIT, IfcSIPrefix.NONE, IfcSIUnitName.CUBIC_METRE, genData);
-			//mWallLayerAssignment = new IfcPresentationLayerAssignment(this, "Walls", "Wall Layer", new List<IfcLayeredItem>(),"", genData);
+			mSILength = new IfcSIUnit(this, IfcUnitEnum.LENGTHUNIT, IfcSIPrefix.NONE, IfcSIUnitName.METRE);
+			mSIArea = new IfcSIUnit(this, IfcUnitEnum.AREAUNIT, IfcSIPrefix.NONE, IfcSIUnitName.SQUARE_METRE);
+			mSIVolume = new IfcSIUnit(this, IfcUnitEnum.VOLUMEUNIT, IfcSIPrefix.NONE, IfcSIUnitName.CUBIC_METRE);
 		}
 		internal void initGeom()
 		{
@@ -577,6 +563,15 @@ namespace GGYM.IFC
 				if(mWorldOrigin == null)
 					mWorldOrigin = WorldCoordinatePlacement.Location;
 				return mWorldOrigin;
+			}
+		}
+		internal IfcCartesianPoint Origin2d
+		{
+			get
+			{
+				if (mOrigin2d == null)
+					mOrigin2d = new IfcCartesianPoint(this,0, 0);
+				return mOrigin2d;
 			}
 		} 
 		internal IfcAxis2Placement3D WorldCoordinatePlacement
@@ -750,7 +745,7 @@ namespace GGYM.IFC
 					{
 						InterpretLine(strLine, aggregate);
 					}
-					catch (Exception ex) { }// ggBasic.printMessage("XXX Error in line " + strLine + " " + ex.Message); }
+					catch (Exception ex) { logError("XXX Error in line " + strLine + " " + ex.Message); }
 					strLine = sr.ReadLine();
 				}
 			}
@@ -814,7 +809,7 @@ namespace GGYM.IFC
 					{
 						InterpretLine(strLine, aggregate);
 					}
-					catch (Exception ex) { }// ggBasic.printMessage("XXX Error in line " + strLine + " " + ex.Message); }
+					catch (Exception ex) { logError("XXX Error in line " + strLine + " " + ex.Message); }
 					strLine = sr.ReadLine();
 				}
 			}
@@ -904,6 +899,16 @@ namespace GGYM.IFC
 					Tolerance = geometricRepresentationContext.mPrecision;
 
 			}
+			IfcSIUnit unit = result as IfcSIUnit;
+			if(unit != null)
+			{
+				if (unit.Name == IfcSIUnitName.METRE && unit.Prefix == IfcSIPrefix.NONE)
+					mSILength = unit;
+				else if (unit.Name == IfcSIUnitName.SQUARE_METRE && unit.Prefix == IfcSIPrefix.NONE)
+					mSIArea = unit;
+				else if (unit.Name == IfcSIUnitName.CUBIC_METRE && unit.Prefix == IfcSIPrefix.NONE)
+					mSIVolume = unit;
+			}
 			aggregate.setAggregate(result);
 			if (mIfcObjects.Count <= result.mIndex)
 				for (int ncounter = mIfcObjects.Count; ncounter <= result.mIndex; ncounter++)
@@ -918,6 +923,42 @@ namespace GGYM.IFC
 			//	return workPlan;
 			//}
 			return result;
+		}
+
+		public bool WriteFile(string filename)
+		{
+			StreamWriter sw = null;
+			bool zip = filename.EndsWith(".ifczip");
+			System.IO.Compression.ZipArchive za = null;
+			if (zip)
+			{
+				if (System.IO.File.Exists(filename))
+					System.IO.File.Delete(filename);
+				za = System.IO.Compression.ZipFile.Open(filename, System.IO.Compression.ZipArchiveMode.Create);
+				System.IO.Compression.ZipArchiveEntry zae = za.CreateEntry(System.IO.Path.GetFileNameWithoutExtension(filename) + ".ifc");
+				sw = new StreamWriter(zae.Open());
+			}
+			else
+				sw = new StreamWriter(filename);
+			CultureInfo current = Thread.CurrentThread.CurrentCulture;
+			Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+			sw.Write(getHeaderString("") + "\r\n");
+			for (int icounter = 1; icounter < mIfcObjects.Count; icounter++)
+			{
+				BaseClassIfc ie = mIfcObjects[icounter];
+				if (ie != null)
+				{
+					string str = ie.ToString();
+					if (!string.IsNullOrEmpty(str))
+						sw.WriteLine(str);
+				}
+			}
+			sw.Write(getFooterString());
+			sw.Close();
+			Thread.CurrentThread.CurrentUICulture = current;
+			if (zip)
+				za.Dispose();
+			return true;
 		}
 	}
 }

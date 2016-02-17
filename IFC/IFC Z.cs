@@ -24,23 +24,20 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public class IfcZone : IfcSystem
 	{
 		internal string mLongName = "$";// :	OPTIONAL IfcLabel; IFC4
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCZONE";
+		public string LongName { get { return (mLongName == "$" ? "" : ParserIfc.Decode(mLongName)); } set { mLongName = (string.IsNullOrEmpty(value) ? "" : ParserIfc.Encode(value.Replace("'", ""))); } }
+
 		internal IfcZone() : base() { }
-		internal IfcZone(IfcZone p) : base(p) { mLongName = p.mLongName; }
+		internal IfcZone(IfcZone z) : base(z) { mLongName = z.mLongName; }
 		internal IfcZone(DatabaseIfc m, string name) : base(m, name) { }
-		internal IfcZone(IfcSpatialElement e, string name, string longname, List<IfcSpace> spaces, List<int> genData)
-			: base(e, name, genData)
+		internal IfcZone(IfcSpatialElement e, string name, string longname, List<IfcSpace> spaces) : base(e, name)
 		{
-			if (!string.IsNullOrEmpty(longname))
-				mLongName = longname.Replace("'", "");
 			if (spaces != null)
 				mIsGroupedBy[0].mRelatedObjects.AddRange(spaces.ConvertAll(x => x.mIndex));
 		}
@@ -50,8 +47,6 @@ namespace GGYM.IFC
 	}
 	public partial class IfcZShapeProfileDef : IfcParameterizedProfileDef
 	{
-		public override string KeyWord { get { return mKW; } }
-		internal static string mKW = "IFCZSHAPEPROFILEDEF";
 		internal double mDepth;// : IfcPositiveLengthMeasure;
 		internal double mFlangeWidth;// : IfcPositiveLengthMeasure;
 		internal double mWebThickness;// : IfcPositiveLengthMeasure;

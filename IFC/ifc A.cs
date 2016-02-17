@@ -24,10 +24,10 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {  
 	public class IfcActionRequest : IfcControl
 	{
@@ -54,7 +54,7 @@ namespace GGYM.IFC
 		internal IfcActor(IfcActorSelect a) : base(a.Database)
 		{
  			if(mDatabase.mModelView != ModelView.If2x3NotAssigned && mDatabase.mModelView != ModelView.Ifc4NotAssigned )
-				throw new Exception("Invalid Model View for IfcActor : " + mDatabase.IFCModelView.ToString());
+				throw new Exception("Invalid Model View for IfcActor : " + mDatabase.ModelView.ToString());
 			mTheActor = a.Index; 
 		}
 		internal static IfcActor Parse(string strDef) { IfcActor a = new IfcActor(); int ipos = 0; parseFields(a, ParserSTEP.SplitLineFields(strDef), ref ipos); return a; }
@@ -160,7 +160,7 @@ namespace GGYM.IFC
 	{
 		internal IfcAdvancedBrep() : base() { }
 		internal IfcAdvancedBrep(IfcAdvancedBrep p) : base(p) { }
-		public IfcAdvancedBrep(List<IfcAdvancedFace> faces) : base(new IfcClosedShell(faces.ConvertAll(x => (IfcFace)x), new List<int>())) { }
+		public IfcAdvancedBrep(List<IfcAdvancedFace> faces) : base(new IfcClosedShell(faces.ConvertAll(x => (IfcFace)x))) { }
 		internal IfcAdvancedBrep(IfcClosedShell s) : base(s) { }
 
 		internal static IfcAdvancedBrep Parse(string strDef) { IfcAdvancedBrep b = new IfcAdvancedBrep(); int ipos = 0; parseFields(b, ParserSTEP.SplitLineFields(strDef), ref ipos); return b; }
@@ -528,7 +528,7 @@ namespace GGYM.IFC
 		internal IfcAnnotation(IfcProduct host) : base(host)
 		{
 			if (mDatabase.mModelView != ModelView.If2x3NotAssigned && mDatabase.mModelView != ModelView.Ifc4NotAssigned)
-				throw new Exception("Invalid Model View for " + KeyWord + " : " + mDatabase.IFCModelView.ToString());
+				throw new Exception("Invalid Model View for " + KeyWord + " : " + mDatabase.ModelView.ToString());
 		}
 		internal static IfcAnnotation Parse(string strDef) { int ipos = 0; IfcAnnotation a = new IfcAnnotation(); parseFields(a, ParserSTEP.SplitLineFields(strDef), ref ipos); return a; }
 		internal static void parseFields(IfcAnnotation a, List<string> arrFields, ref int ipos)  { IfcProduct.parseFields(a,arrFields, ref ipos); }
@@ -1006,7 +1006,7 @@ namespace GGYM.IFC
 				ParserSTEP.LinkToString(mIncorporationDate) + "," +ParserSTEP.LinkToString(mDepreciatedValue);
 		}
 	}
-	public class IfcAsymmetricIShapeProfileDef : IfcIShapeProfileDef
+	public class IfcAsymmetricIShapeProfileDef : IfcIShapeProfileDef //IFC4 IfcParameterizedProfileDef
 	{
 		public override string KeyWord { get { return mKW; } }
 		internal new static string mKW = "IFCASYMMETRICISHAPEPROFILEDEF";
@@ -1015,24 +1015,23 @@ namespace GGYM.IFC
 		internal double mTopFlangeFilletRadius;// : OPTIONAL IfcPositiveLengthMeasure;
 		internal double mCentreOfGravityInY;// : OPTIONAL IfcPositiveLengthMeasure 
 		internal IfcAsymmetricIShapeProfileDef() : base() { }
-		internal IfcAsymmetricIShapeProfileDef(IfcAsymmetricIShapeProfileDef i)
-			: base(i)
+		internal IfcAsymmetricIShapeProfileDef(IfcAsymmetricIShapeProfileDef i) : base(i)
 		{
 			mTopFlangeWidth = i.mTopFlangeWidth;
 			mTopFlangeThickness = i.mTopFlangeThickness;
 			mTopFlangeFilletRadius = i.mTopFlangeFilletRadius;
 			mCentreOfGravityInY = i.mCentreOfGravityInY;
 		}
-		internal static void parseFields(IfcAsymmetricIShapeProfileDef p, List<string> arrFields, ref int ipos)
+		internal static void parseFields(IfcAsymmetricIShapeProfileDef p, List<string> arrFields, ref int ipos,Schema schema)
 		{
-			IfcIShapeProfileDef.parseFields(p, arrFields, ref ipos);
+			IfcIShapeProfileDef.parseFields(p, arrFields, ref ipos,schema);
 			p.mTopFlangeWidth = ParserSTEP.ParseDouble(arrFields[ipos++]);
 			p.mTopFlangeThickness = ParserSTEP.ParseDouble(arrFields[ipos++]);
 			p.mTopFlangeFilletRadius = ParserSTEP.ParseDouble(arrFields[ipos++]);
-			if (ipos < arrFields.Count)
+			if (schema == Schema.IFC2x3)
 				p.mCentreOfGravityInY = ParserSTEP.ParseDouble(arrFields[ipos++]);
 		}
-		internal new static IfcAsymmetricIShapeProfileDef Parse(string strDef) { IfcAsymmetricIShapeProfileDef p = new IfcAsymmetricIShapeProfileDef(); int ipos = 0; parseFields(p, ParserSTEP.SplitLineFields(strDef), ref ipos); return p; }
+		internal new static IfcAsymmetricIShapeProfileDef Parse(string strDef,Schema schema) { IfcAsymmetricIShapeProfileDef p = new IfcAsymmetricIShapeProfileDef(); int ipos = 0; parseFields(p, ParserSTEP.SplitLineFields(strDef), ref ipos,schema); return p; }
 
 		protected override string BuildString()
 		{
@@ -1044,7 +1043,7 @@ namespace GGYM.IFC
 	{
 		internal IfcAudioVisualApplianceTypeEnum mPredefinedType = IfcAudioVisualApplianceTypeEnum.NOTDEFINED;// OPTIONAL : IfcAudioVisualApplianceTypeEnum;
 		public IfcAudioVisualApplianceTypeEnum PredefinedType { get { return mPredefinedType; } set { mPredefinedType = value; } }
-		internal IfcAudioVisualAppliance(IfcAudioVisualAppliance be) : base(be) { }
+		internal IfcAudioVisualAppliance(IfcAudioVisualAppliance a) : base(a) { }
 		internal IfcAudioVisualAppliance() : base() { }
 		internal static void parseFields(IfcAudioVisualAppliance s, List<string> arrFields, ref int ipos)
 		{

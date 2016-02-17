@@ -24,9 +24,9 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public abstract partial class IfcObject : IfcObjectDefinition, IfcObjectDefinitionSelect //ABSTRACT SUPERTYPE OF (ONEOF (IfcActor ,IfcControl ,IfcGroup ,IfcProcess ,IfcProduct ,IfcProject ,IfcResource))
 	{
@@ -101,8 +101,7 @@ namespace GGYM.IFC
 		
 		protected IfcObjectDefinition() : base() { }
 		protected IfcObjectDefinition(IfcObjectDefinition od) : base(od) { }
-		protected IfcObjectDefinition(DatabaseIfc m) : base(m) {  }
-		protected IfcObjectDefinition(DatabaseIfc m, List<int> genData) : base(m) { genData.Add(mIndex); }
+		protected IfcObjectDefinition(DatabaseIfc db) : base(db) {  }
 
 		protected static void parseFields(IfcObjectDefinition objDef, List<string> arrFields, ref int ipos) { IfcRoot.parseFields(objDef, arrFields, ref ipos); }
 
@@ -129,7 +128,6 @@ namespace GGYM.IFC
 			}
 			return null;
 		}
-
 		private IfcMaterialSelect mMaterialSelectIFC4 = null;
 		internal void setMaterial(IfcMaterialSelect material)
 		{
@@ -146,7 +144,7 @@ namespace GGYM.IFC
 					{
 						if (pd.mHasProperties.Count == 0)
 						{
-							IfcProfileProperties pp = new IfcProfileProperties(pd.Name, null, pd, new List<int>());
+							IfcProfileProperties pp = new IfcProfileProperties(pd.Name, null, pd);
 						}
 						pd.mHasProperties[0].mAssociates.addAssociation(this);
 					}
@@ -162,7 +160,7 @@ namespace GGYM.IFC
 					}
 					if (profileSet != null)
 					{
-						m = profileSet.Material;
+						m = profileSet.PrimaryMaterial;
 						mMaterialSelectIFC4 = profileSet;
 						foreach (IfcMaterialProfile matp in profileSet.MaterialProfiles)
 						{
@@ -171,7 +169,7 @@ namespace GGYM.IFC
 							{
 								if (pd.mHasProperties.Count == 0)
 								{
-									IfcProfileProperties pp = new IfcProfileProperties(pd.Name, null, pd, new List<int>());
+									IfcProfileProperties pp = new IfcProfileProperties(pd.Name, null, pd);
 								}
 								pd.mHasProperties[0].mAssociates.addAssociation(this);
 							}
@@ -228,17 +226,14 @@ namespace GGYM.IFC
 
 		internal IfcObjective() : base() { }
 		internal IfcObjective(IfcObjective m) : base(m) { mBenchmarkValues = new List<int>(m.mBenchmarkValues.ToArray()); mLogicalAggregator = m.mLogicalAggregator;  mObjectiveQualifier = m.mObjectiveQualifier; mUserDefinedQualifier = m.mUserDefinedQualifier; }
-		public IfcObjective(DatabaseIfc m, string name, string desc, IfcConstraintEnum constraint, string source, IfcActorSelect creator, string userGrade, List<IfcConstraint> benchmarks, IfcObjectiveEnum qualifier, string userQualifier)
-			: this(m, name, desc, constraint, source, creator, userGrade, benchmarks, qualifier, userQualifier, new List<int>()) { }
-		internal IfcObjective(DatabaseIfc m, string name, string desc, IfcConstraintEnum constraint, string source, IfcActorSelect creator, string userGrade, List<IfcConstraint> benchmarks, IfcObjectiveEnum qualifier, string userQualifier, List<int> genData)
-			: base(m, name, desc, constraint, source, creator, userGrade)
+		public IfcObjective(DatabaseIfc db, string name, IfcConstraintEnum constraint, List<IfcConstraint> benchmarks, IfcObjectiveEnum qualifier, string userQualifier)
+		 	: base(db, name, constraint)
 		{
 			if (benchmarks != null && benchmarks.Count > 0)
 				mBenchmarkValues = benchmarks.ConvertAll(x => x.mIndex);
 			mObjectiveQualifier = qualifier;
 			if (!string.IsNullOrEmpty(userQualifier))
 				mUserDefinedQualifier = userQualifier.Replace("'", "");
-			genData.Add(mIndex);
 		}
 
 		internal static IfcObjective Parse(string strDef, Schema schema) { IfcObjective m = new IfcObjective(); int ipos = 0; parseFields(m, ParserSTEP.SplitLineFields(strDef), ref ipos,schema); return m; }
@@ -309,7 +304,6 @@ namespace GGYM.IFC
 		internal IfcOpeningElement(IfcOpeningElement od) : base(od) { mPredefinedType = od.mPredefinedType; }
 		internal IfcOpeningElement(DatabaseIfc db) : base(db) { }
 		public IfcOpeningElement(IfcElement host, IfcObjectPlacement placement, IfcProductRepresentation rep) : base(host.mDatabase) { Placement = placement; Representation = rep; IfcRelVoidsElement rve = new IfcRelVoidsElement(host, this); }
-		//internal IfcOpeningElement(IfcRepresentationItem rep, IfcOpeningElementTypeEnum type, List<int> genData) : base(rep, genData) { mPredefinedType = type; }
 	
 		internal static IfcOpeningElement Parse(string strDef, Schema schema) { IfcOpeningElement e = new IfcOpeningElement(); int ipos = 0; parseFields(e, ParserSTEP.SplitLineFields(strDef), ref ipos); return e; }
 		internal static void parseFields(IfcOpeningElement e, List<string> arrFields, ref int ipos, Schema schema)
@@ -328,7 +322,6 @@ namespace GGYM.IFC
 		internal IfcOpeningStandardCase(IfcOpeningStandardCase o) : base(o) { }
 		public IfcOpeningStandardCase(IfcElement host, IfcObjectPlacement placement, IfcExtrudedAreaSolid eas) : base(host, placement, new IfcProductDefinitionShape(new IfcShapeRepresentation(eas))) { }
 		public IfcOpeningStandardCase(DatabaseIfc db, IfcObjectPlacement placement, IfcExtrudedAreaSolid eas) : base(db) { Placement = placement; Representation = new IfcProductDefinitionShape(new IfcShapeRepresentation(eas)); }
-		//internal IfcOpeningStandardCase(DatabaseIfc m, IfcObjectPlacement placement, IfcExtrudedAreaSolid eas, List<int> genData) : base(eas, IfcOpeningElementTypeEnum.OPENING, genData) { if (placement != null) placement.addObject(this); }
 		internal static IfcOpeningStandardCase Parse(string strDef) { IfcOpeningStandardCase c = new IfcOpeningStandardCase(); int ipos = 0; parseFields(c, ParserSTEP.SplitLineFields(strDef), ref ipos); return c; }
 		internal static void parseFields(IfcOpeningStandardCase c, List<string> arrFields, ref int ipos) { IfcOpeningElement.parseFields(c, arrFields, ref ipos); }
 	}
@@ -371,8 +364,7 @@ namespace GGYM.IFC
 
 		internal IfcOrganization() : base() { }
 		internal IfcOrganization(IfcOrganization i) : base() { mIdentification = i.mIdentification; mName = i.mName; mDescription = i.mDescription; mRoles = i.mRoles; mAddresses = i.mAddresses; }
-		internal IfcOrganization(DatabaseIfc m)
-			: base(m)
+		internal IfcOrganization(DatabaseIfc db) : base(db)
 		{
 			mName = "UNKNOWN";
 			try
@@ -414,7 +406,7 @@ namespace GGYM.IFC
 		internal IfcOrientedEdge() : base() { }
 		internal IfcOrientedEdge(IfcOrientedEdge el) : base(el) { mEdgeElement = el.mEdgeElement; mOrientation = el.mOrientation; }
 		public IfcOrientedEdge(IfcEdge e, bool sense) : base(e.mDatabase) { mEdgeElement = e.mIndex; mOrientation = sense; }
-		internal IfcOrientedEdge(IfcVertexPoint a, IfcVertexPoint b, List<int> genData) : base(a.mDatabase) { mEdgeElement = new IfcEdge(a, b).mIndex; genData.Add(mEdgeElement); genData.Add(mIndex); }
+		internal IfcOrientedEdge(IfcVertexPoint a, IfcVertexPoint b) : base(a.mDatabase) { mEdgeElement = new IfcEdge(a, b).mIndex; }
 		internal new static IfcOrientedEdge Parse(string strDef) { IfcOrientedEdge e = new IfcOrientedEdge(); int ipos = 0; parseFields(e, ParserSTEP.SplitLineFields(strDef), ref ipos); return e; }
 		internal static void parseFields(IfcOrientedEdge e, List<string> arrFields, ref int ipos)
 		{

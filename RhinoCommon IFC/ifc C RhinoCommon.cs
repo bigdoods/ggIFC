@@ -27,7 +27,7 @@ using Rhino.Collections;
 using Rhino.Geometry;
 using Rhino.DocObjects; 
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public partial class IfcCartesianPoint
 	{
@@ -37,8 +37,8 @@ namespace GGYM.IFC
 		}
 		internal Point3d Coordinates3d { set { mCoordinateX = value.X; mCoordinateY = value.Y; mCoordinateZ = value.Z; } }
 		internal Point2d Coordinates2d { set { mCoordinateX = value.X; mCoordinateY = value.Y; mCoordinateZ = double.NaN; } }
-		internal IfcCartesianPoint(DatabaseIfc m, Point3d pt, List<int> genData) : base(m, genData) { Coordinates3d = pt; }
-		internal IfcCartesianPoint(DatabaseIfc m, Point2d pt, List<int> genData) : base(m, genData) { Coordinates2d = pt; }
+		internal IfcCartesianPoint(DatabaseIfc m, Point3d pt) : base(m) { Coordinates3d = pt; }
+		internal IfcCartesianPoint(DatabaseIfc m, Point2d pt) : base(m) { Coordinates2d = pt; }
 	}
 	
 	public partial class IfcCartesianPointList2D
@@ -55,6 +55,6 @@ namespace GGYM.IFC
 	{
 		internal Vector3d Eccentricity { get { return new Vector3d(mEccentricityInX, mEccentricityInY, mEccentricityInZ); } }
 
-		internal IfcConnectionPointEccentricity(DatabaseIfc m, IfcPointOrVertexPoint v, Vector3d ecc) : base(m, v) { mEccentricityInX = ecc.X; mEccentricityInY = ecc.Y; mEccentricityInZ = ecc.Z; }
+		internal IfcConnectionPointEccentricity(IfcPointOrVertexPoint v, Vector3d ecc) : base(v) { mEccentricityInX = ecc.X; mEccentricityInY = ecc.Y; mEccentricityInZ = ecc.Z; }
 	}
 }

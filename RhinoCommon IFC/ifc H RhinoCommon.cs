@@ -27,7 +27,7 @@ using Rhino.Collections;
 using Rhino.Geometry;
 using Rhino.DocObjects; 
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	 
 }

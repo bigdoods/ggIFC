@@ -24,10 +24,10 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public partial class IfcBeam : IfcBuildingElement
 	{
@@ -155,8 +155,8 @@ namespace GGYM.IFC
 		internal new static string mKW = "IFCBOOLEANCLIPPINGRESULT";
 		internal IfcBooleanClippingResult() : base() { }
 		internal IfcBooleanClippingResult(IfcBooleanClippingResult c) : base(c) { }
-		internal IfcBooleanClippingResult(IfcBooleanClippingResult bc, IfcHalfSpaceSolid hss, List<int> genData) : base(IfcBooleanOperator.DIFFERENCE, bc, hss, genData) { }
-		internal IfcBooleanClippingResult(IfcSweptAreaSolid s, IfcHalfSpaceSolid hss, List<int> genData) : base(IfcBooleanOperator.DIFFERENCE, s, hss, genData) { }
+		internal IfcBooleanClippingResult(IfcBooleanClippingResult bc, IfcHalfSpaceSolid hss) : base(IfcBooleanOperator.DIFFERENCE, bc, hss) { }
+		internal IfcBooleanClippingResult(IfcSweptAreaSolid s, IfcHalfSpaceSolid hss) : base(IfcBooleanOperator.DIFFERENCE, s, hss) { }
 		internal static void parseFields(IfcBooleanClippingResult c, List<string> arrFields, ref int ipos) { IfcBooleanResult.parseFields(c, arrFields, ref ipos); }
 		internal new static IfcBooleanClippingResult Parse(string strDef) { IfcBooleanClippingResult c = new IfcBooleanClippingResult(); int ipos = 0; parseFields(c, ParserSTEP.SplitLineFields(strDef), ref ipos); return c; }
 	}
@@ -175,10 +175,8 @@ namespace GGYM.IFC
 		internal IfcBooleanOperand SecondOperand { get { return mDatabase.mIfcObjects[mSecondOperand] as IfcBooleanOperand; } }
 
 		internal IfcBooleanResult() : base() { }
-		internal IfcBooleanResult(IfcBooleanResult pl) : base(pl) { mOperator = pl.mOperator; mFirstOperand = pl.mFirstOperand; mSecondOperand = pl.mSecondOperand; }
-		public IfcBooleanResult(IfcBooleanOperator op, IfcBooleanOperand first, IfcBooleanOperand second) : this(op, first, second, new List<int>()) { }
-		internal IfcBooleanResult(IfcBooleanOperator op, IfcBooleanOperand first, IfcBooleanOperand second, List<int> genData)
-			: base(first.Database, genData)
+		internal IfcBooleanResult(IfcBooleanResult b) : base(b) { mOperator = b.mOperator; mFirstOperand = b.mFirstOperand; mSecondOperand = b.mSecondOperand; }
+		public IfcBooleanResult(IfcBooleanOperator op, IfcBooleanOperand first, IfcBooleanOperand second) : base(first.Database)
 		{
 			mOperator = op;
 			mFirstOperand = first.Index;
@@ -222,7 +220,7 @@ namespace GGYM.IFC
 		internal double mRotationalStiffnessByLengthX, mRotationalStiffnessByLengthY, mRotationalStiffnessByLengthZ;// : OPTIONAL IfcModulusOfRotationalSubgradeReactionMeasure; 
 		internal IfcBoundaryEdgeCondition() : base() { }
 		internal IfcBoundaryEdgeCondition(IfcBoundaryEdgeCondition i) : base(i) { mLinearStiffnessByLengthX = i.mLinearStiffnessByLengthX; mLinearStiffnessByLengthY = i.mLinearStiffnessByLengthY; mLinearStiffnessByLengthZ = i.mLinearStiffnessByLengthZ; mRotationalStiffnessByLengthX = i.mRotationalStiffnessByLengthX; mRotationalStiffnessByLengthY = i.mRotationalStiffnessByLengthY; mRotationalStiffnessByLengthZ = i.mRotationalStiffnessByLengthZ; }
-		internal IfcBoundaryEdgeCondition(DatabaseIfc m, string name, List<int> genData) : base(m, name) { genData.Add(mIndex); }
+		internal IfcBoundaryEdgeCondition(DatabaseIfc m, string name) : base(m, name) {  }
 		internal static IfcBoundaryEdgeCondition Parse(string strDef) { IfcBoundaryEdgeCondition b = new IfcBoundaryEdgeCondition(); int ipos = 0; parseFields(b, ParserSTEP.SplitLineFields(strDef), ref ipos); return b; }
 		internal static void parseFields(IfcBoundaryEdgeCondition b, List<string> arrFields, ref int ipos)
 		{
@@ -243,7 +241,7 @@ namespace GGYM.IFC
 		internal double mLinearStiffnessByAreaX, mLinearStiffnessByAreaY, mLinearStiffnessByAreaZ;// : OPTIONAL IfcModulusOfSubgradeReactionMeasure 
 		internal IfcBoundaryFaceCondition() : base() { }
 		internal IfcBoundaryFaceCondition(IfcBoundaryFaceCondition i) : base(i) { mLinearStiffnessByAreaX = i.mLinearStiffnessByAreaX; mLinearStiffnessByAreaY = i.mLinearStiffnessByAreaY; mLinearStiffnessByAreaZ = i.mLinearStiffnessByAreaZ; }
-		internal IfcBoundaryFaceCondition(DatabaseIfc m, string name, List<int> genData) : base(m, name) { genData.Add(mIndex); }
+		internal IfcBoundaryFaceCondition(DatabaseIfc m, string name) : base(m, name) { }
 		internal static IfcBoundaryFaceCondition Parse(string strDef) { IfcBoundaryFaceCondition b = new IfcBoundaryFaceCondition(); int ipos = 0; parseFields(b, ParserSTEP.SplitLineFields(strDef), ref ipos); return b; }
 		internal static void parseFields(IfcBoundaryFaceCondition b, List<string> arrFields, ref int ipos) { IfcBoundaryCondition.parseFields(b, arrFields, ref ipos); b.mLinearStiffnessByAreaX = ParserSTEP.ParseDouble(arrFields[ipos++]); b.mLinearStiffnessByAreaY = ParserSTEP.ParseDouble(arrFields[ipos++]); b.mLinearStiffnessByAreaZ = ParserSTEP.ParseDouble(arrFields[ipos++]); }
 		protected override string BuildString() { return base.BuildString() + "," + ParserSTEP.DoubleOptionalToString(mLinearStiffnessByAreaX) + "," + ParserSTEP.DoubleOptionalToString(mLinearStiffnessByAreaY) + "," + ParserSTEP.DoubleOptionalToString(mLinearStiffnessByAreaZ); }
@@ -358,11 +356,10 @@ namespace GGYM.IFC
 
 		internal IfcBoundingBox() : base() { }
 		internal IfcBoundingBox(IfcBoundingBox o) : base(o) { mCorner = o.mCorner; mXDim = o.mXDim; mYDim = o.mYDim; mZDim = o.mZDim; }
-		internal IfcBoundingBox(DatabaseIfc m, IfcCartesianPoint pt, double xdim, double ydim, double zdim, List<int> genData)
-			: base(m, genData)
+		internal IfcBoundingBox(IfcCartesianPoint pt, double xdim, double ydim, double zdim) : base(pt.mDatabase)
 		{
 			//if (mModel.mModelView != ModelView.NotAssigned && mModel.mModelView != ModelView.IFC2x3Coordination)
-			//	throw new Exception("Invalid Model View for IfcBoundingBox : " + m.IFCModelView.ToString());
+			//	throw new Exception("Invalid Model View for IfcBoundingBox : " + m.ModelView.ToString());
 			mCorner = pt.mIndex;
 			mXDim = xdim;
 			mYDim = ydim;
@@ -667,13 +664,12 @@ namespace GGYM.IFC
 		public IfcBuilding(IfcBuilding host, string name) : base(host, name) {   }
 		public IfcBuilding(IfcSite host, string name) : base(host, name) {   }
 	 			
-		private void init(IfcSpatialElement container, List<int> genData)
+		private void init(IfcSpatialElement container)
 		{
 			IfcRelAggregates ra = new IfcRelAggregates(mDatabase, "Building", "Building Storie", this);
-			genData.Add(ra.mIndex);
 			if (container != null) 
 				container.addBuilding(this);
-			//mBuildingAddress = new IfcPostalAddress(mModel, IfcAddressTypeEnum.NOTDEFINED,  genData).mIndex;
+			//mBuildingAddress = new IfcPostalAddress(mModel, IfcAddressTypeEnum.NOTDEFINED).mIndex;
 		}
 		internal static void parseFields(IfcBuilding b, List<string> arrFields, ref int ipos) { IfcSpatialStructureElement.parseFields(b, arrFields, ref ipos); b.mElevationOfRefHeight = ParserSTEP.ParseDouble(arrFields[ipos++]); b.mElevationOfTerrain = ParserSTEP.ParseDouble(arrFields[ipos++]); b.mBuildingAddress = ParserSTEP.ParseLink(arrFields[ipos++]); }
 		protected override string BuildString() { return base.BuildString() + "," + ParserSTEP.DoubleOptionalToString(mElevationOfRefHeight) + "," + ParserSTEP.DoubleOptionalToString(mElevationOfTerrain) + "," + ParserSTEP.LinkToString(mBuildingAddress); }
@@ -692,11 +688,7 @@ namespace GGYM.IFC
 	/*internal class IfcBuildingElementComponent : IfcBuildingElement //IFC4 DELETED
 	{
 		protected IfcBuildingElementComponent(IfcBuildingElementComponent b) : base(b) { }
-		protected IfcBuildingElementComponent(IfcBuildingElement be) : base(be) { }
 		protected IfcBuildingElementComponent() : base() { }
-		protected IfcBuildingElementComponent(DatabaseIfc m, ElementParams p, IfcRepresentationItem optRep, IfcTypeProduct t, IfcProduct container, List<int> genData) : base(m, p, optRep, t, container, genData) { }
-		protected IfcBuildingElementComponent(DatabaseIfc m, ElementParams p, IfcRepresentationItem optRep, IfcMaterialSelect optM, IfcProduct container, List<int> genData) : base(m, p, optRep, optM, container, genData) { }
-		protected IfcBuildingElementComponent(DatabaseIfc m, ElementParams p, List<IfcRepresentationItem> optReps, IfcMaterialSelect optM, IfcProduct container, List<int> genData) : base(m, p, optReps, optM, container, genData) { }
 		protected static void parseFields(IfcBuildingElementComponent c, List<string> arrFields, ref int ipos) { IfcBuildingElement.parseFields(c, arrFields, ref ipos); }
 	}*/
 	public partial class IfcBuildingElementPart : IfcElementComponent
@@ -850,14 +842,15 @@ namespace GGYM.IFC
 	}
 	public class IfcBuildingSystem : IfcSystem //IFC4
 	{
-		public override string KeyWord { get { return mKW; } }
-		internal new static string mKW = "IFCBUILDINGSYSTEM";
 		internal IfcBuildingSystemTypeEnum mPredefinedType = IfcBuildingSystemTypeEnum.NOTDEFINED;// : OPTIONAL IfcBuildingSystemTypeEnum;
-		internal string mLongName = "$"; // 	OPTIONAL IfcLabel IFC4ADD1SystemEnum.NOTDEFINED;// : OPTIONAL IfcDistributionSystemEnum
+		internal string mLongName = "$"; // 	OPTIONAL IfcLabel IFC4ADD1 
+
+		public IfcBuildingSystemTypeEnum PredefinedType { get { return mPredefinedType; } set { mPredefinedType = value; } }
+		public string LongName { get { return (mLongName == "$" ? "" : ParserIfc.Decode(mLongName)); } set { mLongName = (string.IsNullOrEmpty(value) ? "" : ParserIfc.Encode(value.Replace("'", ""))); } }
 
 		internal IfcBuildingSystem() : base() { }
 		internal IfcBuildingSystem(IfcBuildingSystem i) : base(i) { mLongName = i.mLongName; mPredefinedType = i.mPredefinedType; }
-		internal IfcBuildingSystem(IfcSpatialElement bldg, string name, string longname, IfcBuildingSystemTypeEnum type, List<int> genData) : base(bldg, name, genData) { if (!string.IsNullOrEmpty(longname)) mLongName = longname.Replace("'", ""); mPredefinedType = type; }
+		internal IfcBuildingSystem(IfcSpatialElement bldg, string name,  IfcBuildingSystemTypeEnum type) : base(bldg, name) { mPredefinedType = type; }
 		internal new static IfcBuildingSystem Parse(string strDef) { IfcBuildingSystem m = new IfcBuildingSystem(); int ipos = 0; parseFields(m, ParserSTEP.SplitLineFields(strDef), ref ipos); return m; }
 		internal static void parseFields(IfcBuildingSystem c, List<string> arrFields, ref int ipos)
 		{

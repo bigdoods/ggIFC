@@ -24,9 +24,9 @@ using System.Reflection;
 using System.IO;
 using System.ComponentModel;
 
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public partial class BaseClassIfc : STEPEntity, IfcInterface
 	{

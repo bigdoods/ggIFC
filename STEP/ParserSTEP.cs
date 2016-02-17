@@ -25,7 +25,7 @@ using System.IO;
 using System.ComponentModel;
 using System.Globalization;	
 
-namespace GGYM.STEP
+namespace GeometryGym.STEP
 {
 	public static class ParserSTEP 
 	{
@@ -649,8 +649,6 @@ namespace GGYM.STEP
 		}
 		public static bool StripBool(string s, ref int pos)
 		{
-			//string temp = s.Substring(pos);
-			//ggBasic.printMessage(temp);
 			int icounter = pos, len = s.Length;
 			while (char.IsWhiteSpace(s[icounter]))
 			{
@@ -679,8 +677,6 @@ namespace GGYM.STEP
 		}
 		public static double StripDouble(string s, ref int pos)
 		{
-			//string temp = s.Substring(pos);
-			//ggBasic.printMessage(temp);
 			int icounter = pos, len = s.Length;
 			while (char.IsWhiteSpace(s[icounter]))
 			{
@@ -723,8 +719,6 @@ namespace GGYM.STEP
 		}  
 		public static int StripLink(string s, ref int pos)
 		{
-			//string temp = s.Substring(pos);
-			//ggBasic.printMessage(temp);
 			int icounter = pos, len = s.Length;
 			while (char.IsWhiteSpace(s[icounter]))
 			{
@@ -769,8 +763,6 @@ namespace GGYM.STEP
 		public static List<int> StripListLink(string s, ref int pos)
 		{
 			int icounter = pos, len = s.Length;
-			//	string temp = s.Substring(pos);
-			//ggBasic.printMessage(temp);
 			while (char.IsWhiteSpace(s[icounter]))
 			{
 				icounter++;
@@ -827,8 +819,6 @@ namespace GGYM.STEP
 		}
 		public static string StripString(string s, ref int pos)
 		{
-			//string temp = s.Substring(pos);
-			//ggBasic.printMessage(temp);
 			int icounter = pos, len = s.Length;
 			while (char.IsWhiteSpace(s[icounter]))
 			{

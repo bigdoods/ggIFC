@@ -24,9 +24,9 @@ using System.IO;
 using System.ComponentModel;
 using System.Linq;
 using System.Drawing;
-using GGYM.STEP;
+using GeometryGym.STEP;
 
-namespace GGYM.IFC
+namespace GeometryGym.Ifc
 {
 	public partial class IfcWall : IfcBuildingElement
 	{
@@ -225,8 +225,8 @@ namespace GGYM.IFC
 			mLiningToPanelOffsetY = p.mLiningToPanelOffsetY;
 		}
 		internal IfcWindowLiningProperties(DatabaseIfc m, string name, double lngDpth, double lngThck, double trnsmThck, double mllnThck,
-			double trnsmOffst1, double trnsmOffst2, double mllnOffst1, double mllnOffst2, double lngOffset, double lngToPnlOffstX, double lngToPnlOffstY, List<int> genData)
-			: base(m, name, genData)
+			double trnsmOffst1, double trnsmOffst2, double mllnOffst1, double mllnOffst2, double lngOffset, double lngToPnlOffstX, double lngToPnlOffstY)
+			: base(m, name)
 		{
 			mLiningDepth = lngDpth;
 			mLiningThickness = lngThck;
@@ -286,8 +286,8 @@ namespace GGYM.IFC
 			mFrameThickness = p.mFrameThickness;
 			mShapeAspectStyle = p.mShapeAspectStyle;
 		}
-		internal IfcWindowPanelProperties(DatabaseIfc m, string name, IfcWindowPanelOperationEnum op, IfcWindowPanelPositionEnum panel, double frameDepth, double frameThick, List<int> genData)
-			: base(m, name, genData)
+		internal IfcWindowPanelProperties(DatabaseIfc m, string name, IfcWindowPanelOperationEnum op, IfcWindowPanelPositionEnum panel, double frameDepth, double frameThick)
+			: base(m, name)
 		{
 			mOperationType = op;
 			mPanelPosition = panel;
@@ -312,8 +312,7 @@ namespace GGYM.IFC
 		internal new static string mKW = "IFCWINDOWSTANDARDCASE";
 		internal IfcWindowStandardCase() : base() { }
 		internal IfcWindowStandardCase(IfcWindowStandardCase o) : base(o) { }
-		//internal IfcWindowStandardCase(DatabaseIfc m, ElementParams p, IfcBuildingElement host, IfcWindowType wt, double height, double width, List<int> genData) : base(m, p, container,wt,height,width, genData) {  }
-		internal new static IfcWindowStandardCase Parse(string strDef) { IfcWindowStandardCase s = new IfcWindowStandardCase(); int ipos = 0; parseFields(s, ParserSTEP.SplitLineFields(strDef), ref ipos); return s; }
+		internal static IfcWindowStandardCase Parse(string strDef) { IfcWindowStandardCase s = new IfcWindowStandardCase(); int ipos = 0; parseFields(s, ParserSTEP.SplitLineFields(strDef), ref ipos); return s; }
 		internal static void parseFields(IfcWindowStandardCase s, List<string> arrFields, ref int ipos) { IfcWindow.parseFields(s, arrFields, ref ipos); }
 	}
 	public partial class IfcWindowStyle : IfcTypeProduct // IFC2x3
@@ -439,7 +438,7 @@ namespace GGYM.IFC
 			return base.BuildString() + str + mPredefinedType.ToString() + ".";
 		}
 	}
-	public abstract class IfcWorkControl : IfcControl //ABSTRACT SUPERTYPE OF(ONEOF(IfcWorkPlan, IfcWorkSchedule))
+	public abstract partial class IfcWorkControl : IfcControl //ABSTRACT SUPERTYPE OF(ONEOF(IfcWorkPlan, IfcWorkSchedule))
 	{
 		//internal string mIdentifier	 : 	IfcIdentifier; IFC4 moved to control
 		internal string mCreationDate;// : IfcDateTime;
@@ -468,40 +467,7 @@ namespace GGYM.IFC
 			mStartTime = i.mStartTime;
 			mFinishTime = i.mFinishTime;
 		}
-		protected IfcWorkControl(DatabaseIfc m, List<IfcPerson> creators, string purpose, IfcDuration duration, IfcDuration totalfloat, DateTime start, DateTime finish, List<int> genData)
-			: base(m)
-		{
-			if (m.mSchema == Schema.IFC2x3)
-			{
-
-				mSSCreationDate = IfcDateTime.convertDateTimeSelect(m, DateTime.Now, genData).Index;
-				mSSStartTime = IfcDateTime.convertDateTimeSelect(m, start, genData).Index;
-				if (duration != null)
-					mSSDuration = duration.ToSeconds();
-				if (totalfloat != null)
-					mSSTotalFloat = totalfloat.ToSeconds();
-				if (finish != DateTime.MinValue)
-					mSSFinishTime = IfcDateTime.convertDateTimeSelect(m, finish, genData).Index;
-			}
-			else
-			{
-				mCreationDate = IfcDateTime.Convert(DateTime.Now);
-				mStartTime = IfcDateTime.Convert(start);
-				if (duration != null)
-					mDuration = duration.ToString();
-				if (totalfloat != null)
-					mTotalFloat = totalfloat.ToString();
-				if (finish != DateTime.MinValue)
-					mFinishTime = IfcDateTime.Convert(finish);
-			}
-			if (creators != null && creators.Count > 0)
-				mCreators = creators.ConvertAll(x => x.mIndex);
-			if (!string.IsNullOrEmpty(purpose))
-				mPurpose = purpose.Replace("'", "");
-			genData.Add(mIndex);
-		}
-		protected IfcWorkControl(DatabaseIfc m, List<IfcPerson> creators, string purpose, IfcDuration duration, IfcDuration totalfloat, DateTime start, DateTime finish, IfcProject prj, List<int> genData)
-			: this(m, creators, purpose, duration, totalfloat, start, finish, genData) { prj.AddDeclared(this); }
+		
 		protected static void parseFields(IfcWorkControl c, List<string> arrFields, ref int ipos, Schema schema)
 		{
 			IfcControl.parseFields(c, arrFields, ref ipos,schema);
@@ -549,11 +515,7 @@ namespace GGYM.IFC
 			return str + (mPurpose == "$" ? "$," : "'" + mPurpose + "',") + mDuration + "," + mTotalFloat + (mStartTime == "$" ? ",$," : ",'" + mStartTime + "',") + (mFinishTime == "$" ? "$" : "'" + mFinishTime + "'");
 		}
 		internal DateTime getStart() { return (mDatabase.mSchema == Schema.IFC2x3 ? (mDatabase.mIfcObjects[mSSStartTime] as IfcDateTimeSelect).DateTime : DateTime.MinValue); }
-		internal void assignTask(IfcTask t, IfcScheduleTimeControl tc, List<int> genData) 
-		{ 
-			mControls.Add(new IfcRelAssignsTasks(this, t, tc));
-			genData.Add(mControls[mControls.Count - 1].mIndex);
-		}
+		
 	}
 	public partial class IfcWorkPlan : IfcWorkControl
 	{
@@ -562,7 +524,6 @@ namespace GGYM.IFC
 		internal IfcWorkPlanTypeEnum mPredefinedType = IfcWorkPlanTypeEnum.NOTDEFINED;//	 :	OPTIONAL IfcWorkPlanTypeEnum; IFC4
 		internal IfcWorkPlan() : base() { }
 		internal IfcWorkPlan(IfcWorkPlan p) : base(p) { mPredefinedType = p.mPredefinedType; }
-		internal IfcWorkPlan(DatabaseIfc m, List<IfcPerson> ps, string purpose, IfcDuration duration, IfcDuration totalFloat, DateTime start, DateTime finish, IfcWorkPlanTypeEnum type, IfcProject prj, List<int> genData) : base(m, ps, purpose, duration, totalFloat, start, finish, prj, genData) { mPredefinedType = type; }
 		internal static IfcWorkPlan Parse(string strDef) { IfcWorkPlan p = new IfcWorkPlan(); int ipos = 0; parseFields(p, ParserSTEP.SplitLineFields(strDef), ref ipos); return p; }
 		internal static void parseFields(IfcWorkPlan p, List<string> arrFields, ref int ipos, Schema schema)
 		{
@@ -576,16 +537,13 @@ namespace GGYM.IFC
 		}
 		protected override string BuildString() { return base.BuildString() + (mDatabase.mSchema == Schema.IFC2x3 ? "" : ",." + mPredefinedType.ToString() + "."); }
 	}
-	public class IfcWorkSchedule : IfcWorkControl
+	public partial class IfcWorkSchedule : IfcWorkControl
 	{
 		public override string KeyWord { get { return mKW; } }
 		internal static string mKW = "IFCWORKSCHEDULE";
 		internal IfcWorkScheduleTypeEnum mPredefinedType = IfcWorkScheduleTypeEnum.NOTDEFINED;//	 :	OPTIONAL IfcWorkScheduleTypeEnum; IFC4
 		internal IfcWorkSchedule() : base() { }
 		internal IfcWorkSchedule(IfcWorkSchedule p) : base(p) { mPredefinedType = p.mPredefinedType; }
-		internal IfcWorkSchedule(DatabaseIfc m, List<IfcPerson> ps, string purpose, IfcDuration duration, IfcDuration totalFloat, DateTime start, DateTime finish, IfcWorkScheduleTypeEnum type, IfcProject prj, List<int> genData) : base(m, ps, purpose, duration, totalFloat, start, finish, prj, genData) { mPredefinedType = type; }
-		internal IfcWorkSchedule(DatabaseIfc m, List<IfcPerson> ps, string purpose, IfcDuration duration, IfcDuration totalFloat, DateTime start, DateTime finish, IfcWorkScheduleTypeEnum type, IfcWorkPlan pl, List<int> genData) : base(m, ps, purpose, duration, totalFloat, start, finish, genData) { mPredefinedType = type; pl.AddAggregated(this); }
-		internal IfcWorkSchedule(DatabaseIfc m, List<IfcPerson> ps, string purpose, IfcDuration duration, IfcDuration totalFloat, DateTime start, DateTime finish, IfcWorkScheduleTypeEnum type, IfcWorkSchedule s, List<int> genData) : base(m, ps, purpose, duration, totalFloat, start, finish, genData) { mPredefinedType = type; s.AddNested(this); }
 		internal static IfcWorkSchedule Parse(string strDef, Schema schema) { IfcWorkSchedule s = new IfcWorkSchedule(); int ipos = 0; parseFields(s, ParserSTEP.SplitLineFields(strDef), ref ipos,schema); return s; }
 		internal static void parseFields(IfcWorkSchedule s, List<string> arrFields, ref int ipos, Schema schema)
 		{
@@ -608,8 +566,8 @@ namespace GGYM.IFC
 		internal string mFinish = "$";//	 :	OPTIONAL IfcDate; 
 		internal IfcWorkTime() : base() { }
 		internal IfcWorkTime(IfcWorkTime i) : base(i) { mRecurrencePattern = i.mRecurrencePattern; mStart = i.mStart; mFinish = i.mFinish; }
-		internal IfcWorkTime(DatabaseIfc m, string name, IfcDataOriginEnum origin, string userOrigin, IfcRecurrencePattern recur, DateTime start, DateTime finish, List<int> genData)
-			: base(m, name, origin, userOrigin, genData) { if (recur != null) mRecurrencePattern = recur.mIndex; if (start != DateTime.MinValue) mStart = IfcDate.convert(start); if (finish != DateTime.MinValue) mFinish = IfcDate.convert(finish); }
+		internal IfcWorkTime(DatabaseIfc m, string name, IfcDataOriginEnum origin, string userOrigin, IfcRecurrencePattern recur, DateTime start, DateTime finish)
+			: base(m, name, origin, userOrigin) { if (recur != null) mRecurrencePattern = recur.mIndex; if (start != DateTime.MinValue) mStart = IfcDate.convert(start); if (finish != DateTime.MinValue) mFinish = IfcDate.convert(finish); }
 		internal static IfcWorkTime Parse(string strDef) { IfcWorkTime f = new IfcWorkTime(); int ipos = 0; parseFields(f, ParserSTEP.SplitLineFields(strDef), ref ipos); return f; }
 		internal static void parseFields(IfcWorkTime f, List<string> arrFields, ref int ipos)
 		{

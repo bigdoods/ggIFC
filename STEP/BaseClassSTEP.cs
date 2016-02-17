@@ -24,7 +24,7 @@ using System.Reflection;
 using System.IO;
 using System.ComponentModel;
 
-namespace GGYM.STEP
+namespace GeometryGym.STEP
 {
 	public class STEPEntity 
 	{

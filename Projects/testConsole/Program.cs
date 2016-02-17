@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GGYM.IFC;
+using GeometryGym.Ifc;
 
 namespace testConsole
 {
